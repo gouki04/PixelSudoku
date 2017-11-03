@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c8dd37a06941854694f3bd2c05601a1, type: 3}
+  m_Name: 8
+  m_EditorClassIdentifier: 
+  Size: 9
+  PuzzleString: '600090710
+
+    801005400
+
+    090004605
+
+    409016000
+
+    100000000
+
+    078300000
+
+    060000070
+
+    004000006
+
+    000500304'
