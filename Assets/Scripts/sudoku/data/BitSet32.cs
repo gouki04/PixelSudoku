@@ -4,16 +4,16 @@ namespace sudoku.data
 {
     public struct BitSet32
     {
-        private int mBit;
+        private int m_Bit;
 
         public BitSet32(int bit)
         {
-            mBit = bit;
+            m_Bit = bit;
         }
 
         public void SetBit(int idx)
         {
-            mBit |= (1 << idx);
+            m_Bit |= (1 << idx);
         }
 
         /// <summary>
@@ -22,12 +22,12 @@ namespace sudoku.data
         /// <param name="idx"></param>
         public void UnSetBit(int idx)
         {
-            mBit &= ~(1 << idx);
+            m_Bit &= ~(1 << idx);
         }
 
         public bool HasBit(int idx)
         {
-            return (mBit & (1 << idx)) != 0;
+            return (m_Bit & (1 << idx)) != 0;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet32 Intersect(BitSet32 other)
         {
-            return new BitSet32(other.mBit & mBit);
+            return new BitSet32(other.m_Bit & m_Bit);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet32 Union(BitSet32 other)
         {
-            return new BitSet32(other.mBit | mBit);
+            return new BitSet32(other.m_Bit | m_Bit);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet32 Exclusive(BitSet32 other)
         {
-            return new BitSet32(other.mBit ^ mBit);
+            return new BitSet32(other.m_Bit ^ m_Bit);
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet32 Minus(BitSet32 other)
         {
-            return new BitSet32((mBit | other.mBit) ^ other.mBit);
+            return new BitSet32((m_Bit | other.m_Bit) ^ other.m_Bit);
         }
 
         public int BitCount
@@ -76,7 +76,7 @@ namespace sudoku.data
                 // Brian Kernighan's Algorithm
                 // @see http://cs-fundamentals.com/tech-interview/c/c-program-to-count-number-of-ones-in-unsigned-integer.php
                 int count = 0;
-                int n = mBit;
+                int n = m_Bit;
                 while (n != 0) {
                     n = n & (n - 1);
                     ++count;
@@ -90,7 +90,7 @@ namespace sudoku.data
         public string DebugBitString
         {
             get {
-                return System.Convert.ToString(mBit, 2);
+                return System.Convert.ToString(m_Bit, 2);
             }
         }
 
@@ -110,13 +110,13 @@ namespace sudoku.data
 
         public void Reset()
         {
-            mBit = 0;
+            m_Bit = 0;
         }
 
         public bool IsEmpty
         {
             get {
-                return mBit == 0;
+                return m_Bit == 0;
             }
         }
 
@@ -130,7 +130,7 @@ namespace sudoku.data
 
         public static bool operator ==(BitSet32 lhs, BitSet32 rhs)
         {
-            if (lhs.mBit == rhs.mBit) {
+            if (lhs.m_Bit == rhs.m_Bit) {
                 return true;
             } else {
                 return false;
@@ -144,7 +144,7 @@ namespace sudoku.data
 
         public static bool operator ==(BitSet32 lhs, int rhs)
         {
-            if (lhs.mBit == rhs) {
+            if (lhs.m_Bit == rhs) {
                 return true;
             } else {
                 return false;
@@ -158,7 +158,7 @@ namespace sudoku.data
 
         public static bool operator ==(int lhs, BitSet32 rhs)
         {
-            if (lhs == rhs.mBit) {
+            if (lhs == rhs.m_Bit) {
                 return true;
             } else {
                 return false;
@@ -172,22 +172,22 @@ namespace sudoku.data
 
         public static BitSet32 operator +(BitSet32 lhs, BitSet32 rhs)
         {
-            return new BitSet32(lhs.mBit | rhs.mBit);
+            return new BitSet32(lhs.m_Bit | rhs.m_Bit);
         }
 
         public static BitSet32 operator -(BitSet32 lhs, BitSet32 rhs)
         {
-            return new BitSet32((lhs.mBit | rhs.mBit) ^ rhs.mBit);
+            return new BitSet32((lhs.m_Bit | rhs.m_Bit) ^ rhs.m_Bit);
         }
 
         public static bool operator true(BitSet32 nf)
         {
-            return nf.mBit != 0;
+            return nf.m_Bit != 0;
         }
 
         public static bool operator false(BitSet32 nf)
         {
-            return nf.mBit == 0;
+            return nf.m_Bit == 0;
         }
 
         public override bool Equals(object obj)
@@ -201,12 +201,12 @@ namespace sudoku.data
 
         public override int GetHashCode()
         {
-            return mBit;
+            return m_Bit;
         }
 
         public override string ToString()
         {
-            return mBit.ToString();
+            return m_Bit.ToString();
         }
 
         #endregion
@@ -214,7 +214,7 @@ namespace sudoku.data
         #region IEnumerable
         public static IEnumerable<int> AllBits(BitSet32 bit_set_32, int max)
         {
-            if (bit_set_32.mBit != 0) {
+            if (bit_set_32.m_Bit != 0) {
                 for (var i = 0; i <= max; ++i) {
                     if (bit_set_32.HasBit(i)) {
                         yield return i;
@@ -226,7 +226,7 @@ namespace sudoku.data
         public static bool GetBits(BitSet32 bit_set_32, out int a)
         {
             a = 0;
-            if (bit_set_32.mBit != 0) {
+            if (bit_set_32.m_Bit != 0) {
                 for (var i = 0; i < 32; ++i) {
                     if (bit_set_32.HasBit(i)) {
                         a = i;
@@ -242,7 +242,7 @@ namespace sudoku.data
         {
             a = 0;
             b = 0;
-            if (bit_set_32.mBit != 0) {
+            if (bit_set_32.m_Bit != 0) {
                 var i = 0;
                 for (i = 0; i < 32; ++i) {
                     if (bit_set_32.HasBit(i)) {

@@ -4,42 +4,42 @@ namespace sudoku.data
 {
     public struct BitSet128
     {
-        private long mLowBit;
-        private long mHighBit;
+        private long m_LowBit;
+        private long m_HighBit;
 
         public BitSet128(long low_bit, long high_bit)
         {
-            mLowBit = low_bit;
-            mHighBit = high_bit;
+            m_LowBit = low_bit;
+            m_HighBit = high_bit;
         }
 
         public void SetBit(int idx)
         {
             if (idx >= 64) {
-                mHighBit |= (1L << (idx - 64));
+                m_HighBit |= (1L << (idx - 64));
             }
             else {
-                mLowBit |= (1L << idx);
+                m_LowBit |= (1L << idx);
             }
         }
 
         public void UnSetBit(int idx)
         {
             if (idx >= 64) {
-                mHighBit &= ~(1L << (idx - 64));
+                m_HighBit &= ~(1L << (idx - 64));
             }
             else {
-                mLowBit &= ~(1L << idx);
+                m_LowBit &= ~(1L << idx);
             }
         }
 
         public bool HasBit(int idx)
         {
             if (idx >= 64) {
-                return (mHighBit & (1L << (idx - 64))) != 0;
+                return (m_HighBit & (1L << (idx - 64))) != 0;
             }
             else {
-                return (mLowBit & (1L << idx)) != 0;
+                return (m_LowBit & (1L << idx)) != 0;
             }
         }
 
@@ -50,7 +50,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet128 Intersect(BitSet128 other)
         {
-            return new BitSet128(other.mLowBit & mLowBit, other.mHighBit & mHighBit);
+            return new BitSet128(other.m_LowBit & m_LowBit, other.m_HighBit & m_HighBit);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet128 Union(BitSet128 other)
         {
-            return new BitSet128(other.mLowBit | mLowBit, other.mHighBit | mHighBit);
+            return new BitSet128(other.m_LowBit | m_LowBit, other.m_HighBit | m_HighBit);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet128 Exclusive(BitSet128 other)
         {
-            return new BitSet128(other.mLowBit ^ mLowBit, other.mHighBit ^ mHighBit);
+            return new BitSet128(other.m_LowBit ^ m_LowBit, other.m_HighBit ^ m_HighBit);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace sudoku.data
         /// <returns></returns>
         public BitSet128 Minus(BitSet128 other)
         {
-            return new BitSet128((mLowBit | other.mLowBit) ^ other.mLowBit, (mHighBit | other.mHighBit) ^ other.mHighBit);
+            return new BitSet128((m_LowBit | other.m_LowBit) ^ other.m_LowBit, (m_HighBit | other.m_HighBit) ^ other.m_HighBit);
         }
 
         public int BitCount
@@ -89,13 +89,13 @@ namespace sudoku.data
                 // Brian Kernighan's Algorithm
                 // @see http://cs-fundamentals.com/tech-interview/c/c-program-to-count-number-of-ones-in-unsigned-integer.php
                 int count = 0;
-                var n = mLowBit;
+                var n = m_LowBit;
                 while (n != 0) {
                     n = n & (n - 1);
                     ++count;
                 }
 
-                n = mHighBit;
+                n = m_HighBit;
                 while (n != 0) {
                     n = n & (n - 1);
                     ++count;
@@ -109,14 +109,14 @@ namespace sudoku.data
         public string DebugLowBitString
         {
             get {
-                return System.Convert.ToString(mLowBit, 2);
+                return System.Convert.ToString(m_LowBit, 2);
             }
         }
 
         public string DebugHighBitString
         {
             get {
-                return System.Convert.ToString(mHighBit, 2);
+                return System.Convert.ToString(m_HighBit, 2);
             }
         }
 
@@ -144,14 +144,14 @@ namespace sudoku.data
 
         public void Reset()
         {
-            mLowBit = 0;
-            mHighBit = 0;
+            m_LowBit = 0;
+            m_HighBit = 0;
         }
 
         public bool IsEmpty
         {
             get {
-                return mLowBit == 0 && mHighBit == 0;
+                return m_LowBit == 0 && m_HighBit == 0;
             }
         }
 
@@ -160,7 +160,7 @@ namespace sudoku.data
         #region operator
         public static bool operator ==(BitSet128 lhs, BitSet128 rhs)
         {
-            if (lhs.mLowBit == rhs.mLowBit && lhs.mHighBit == rhs.mHighBit) {
+            if (lhs.m_LowBit == rhs.m_LowBit && lhs.m_HighBit == rhs.m_HighBit) {
                 return true;
             }
             else {
@@ -176,25 +176,25 @@ namespace sudoku.data
         public static BitSet128 operator +(BitSet128 lhs, BitSet128 rhs)
         {
             return new BitSet128(
-                lhs.mLowBit | rhs.mLowBit,
-                lhs.mHighBit | rhs.mHighBit);
+                lhs.m_LowBit | rhs.m_LowBit,
+                lhs.m_HighBit | rhs.m_HighBit);
         }
 
         public static BitSet128 operator -(BitSet128 lhs, BitSet128 rhs)
         {
             return new BitSet128(
-                (lhs.mLowBit | rhs.mLowBit) ^ rhs.mLowBit,
-                (lhs.mHighBit | rhs.mHighBit) ^ rhs.mHighBit);
+                (lhs.m_LowBit | rhs.m_LowBit) ^ rhs.m_LowBit,
+                (lhs.m_HighBit | rhs.m_HighBit) ^ rhs.m_HighBit);
         }
 
         public static bool operator true(BitSet128 bit_set_128)
         {
-            return bit_set_128.mLowBit != 0 || bit_set_128.mHighBit != 0;
+            return bit_set_128.m_LowBit != 0 || bit_set_128.m_HighBit != 0;
         }
 
         public static bool operator false(BitSet128 bit_set_128)
         {
-            return bit_set_128.mLowBit == 0 && bit_set_128.mHighBit == 0;
+            return bit_set_128.m_LowBit == 0 && bit_set_128.m_HighBit == 0;
         }
 
         public override bool Equals(object obj)
@@ -213,7 +213,7 @@ namespace sudoku.data
 
         public override string ToString()
         {
-            return mHighBit.ToString() + mLowBit.ToString();
+            return m_HighBit.ToString() + m_LowBit.ToString();
         }
 
         #endregion
@@ -228,40 +228,40 @@ namespace sudoku.data
             }
         }
 
-        public static IEnumerable<int> AllBits(BitSet128 gf)
+        public static IEnumerable<int> AllBits(BitSet128 bit_set_128)
         {
-            if (gf.mLowBit != 0) {
-                if ((gf.mLowBit & unchecked(0x00000000FFFFFFFF)) != 0) {
-                    if ((gf.mLowBit & unchecked(0x000000000000FFFF)) != 0) {
-                        if ((gf.mLowBit & unchecked(0x00000000000000FF)) != 0) {
+            if (bit_set_128.m_LowBit != 0) {
+                if ((bit_set_128.m_LowBit & unchecked(0x00000000FFFFFFFF)) != 0) {
+                    if ((bit_set_128.m_LowBit & unchecked(0x000000000000FFFF)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked(0x00000000000000FF)) != 0) {
                             for (var i = 0; i < 8; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
                         }
 
-                        if ((gf.mLowBit & unchecked(0x000000000000FF00)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked(0x000000000000FF00)) != 0) {
                             for (var i = 8; i < 16; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
                         }
                     }
 
-                    if ((gf.mLowBit & unchecked(0x00000000FFFF0000)) != 0) {
-                        if ((gf.mLowBit & unchecked(0x0000000000FF0000)) != 0) {
+                    if ((bit_set_128.m_LowBit & unchecked(0x00000000FFFF0000)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked(0x0000000000FF0000)) != 0) {
                             for (var i = 16; i < 24; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
                         }
 
-                        if ((gf.mLowBit & unchecked(0x00000000FF000000)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked(0x00000000FF000000)) != 0) {
                             for (var i = 24; i < 32; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
@@ -269,37 +269,37 @@ namespace sudoku.data
                     }
                 }
 
-                if ((gf.mLowBit & unchecked((long)0xFFFFFFFF00000000)) != 0) {
-                    if ((gf.mLowBit & unchecked((long)0x0000FFFF00000000)) != 0) {
-                        if ((gf.mLowBit & unchecked((long)0x000000FF00000000)) != 0) {
+                if ((bit_set_128.m_LowBit & unchecked((long)0xFFFFFFFF00000000)) != 0) {
+                    if ((bit_set_128.m_LowBit & unchecked((long)0x0000FFFF00000000)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked((long)0x000000FF00000000)) != 0) {
                             for (var i = 32; i < 40; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
                         }
 
-                        if ((gf.mLowBit & unchecked((long)0x0000FF0000000000)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked((long)0x0000FF0000000000)) != 0) {
                             for (var i = 40; i < 48; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
                         }
                     }
 
-                    if ((gf.mLowBit & unchecked((long)0xFFFF000000000000)) != 0) {
-                        if ((gf.mLowBit & unchecked((long)0x00FF000000000000)) != 0) {
+                    if ((bit_set_128.m_LowBit & unchecked((long)0xFFFF000000000000)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked((long)0x00FF000000000000)) != 0) {
                             for (var i = 48; i < 56; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
                         }
 
-                        if ((gf.mLowBit & unchecked((long)0xFF00000000000000)) != 0) {
+                        if ((bit_set_128.m_LowBit & unchecked((long)0xFF00000000000000)) != 0) {
                             for (var i = 56; i < 64; ++i) {
-                                if ((gf.mLowBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_LowBit & (1L << i)) != 0) {
                                     yield return i;
                                 }
                             }
@@ -308,38 +308,38 @@ namespace sudoku.data
                 }
             }
 
-            if (gf.mHighBit != 0) {
-                if ((gf.mHighBit & unchecked(0x00000000FFFFFFFF)) != 0) {
-                    if ((gf.mHighBit & unchecked(0x000000000000FFFF)) != 0) {
-                        if ((gf.mHighBit & unchecked(0x00000000000000FF)) != 0) {
+            if (bit_set_128.m_HighBit != 0) {
+                if ((bit_set_128.m_HighBit & unchecked(0x00000000FFFFFFFF)) != 0) {
+                    if ((bit_set_128.m_HighBit & unchecked(0x000000000000FFFF)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked(0x00000000000000FF)) != 0) {
                             for (var i = 0; i < 8; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
                         }
 
-                        if ((gf.mHighBit & unchecked(0x000000000000FF00)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked(0x000000000000FF00)) != 0) {
                             for (var i = 8; i < 16; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
                         }
                     }
 
-                    if ((gf.mHighBit & unchecked(0x00000000FFFF0000)) != 0) {
-                        if ((gf.mHighBit & unchecked(0x0000000000FF0000)) != 0) {
+                    if ((bit_set_128.m_HighBit & unchecked(0x00000000FFFF0000)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked(0x0000000000FF0000)) != 0) {
                             for (var i = 16; i < 24; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
                         }
 
-                        if ((gf.mHighBit & unchecked(0x00000000FF000000)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked(0x00000000FF000000)) != 0) {
                             for (var i = 24; i < 32; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
@@ -347,37 +347,37 @@ namespace sudoku.data
                     }
                 }
 
-                if ((gf.mHighBit & unchecked((long)0xFFFFFFFF00000000)) != 0) {
-                    if ((gf.mHighBit & unchecked((long)0x0000FFFF00000000)) != 0) {
-                        if ((gf.mHighBit & unchecked((long)0x000000FF00000000)) != 0) {
+                if ((bit_set_128.m_HighBit & unchecked((long)0xFFFFFFFF00000000)) != 0) {
+                    if ((bit_set_128.m_HighBit & unchecked((long)0x0000FFFF00000000)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked((long)0x000000FF00000000)) != 0) {
                             for (var i = 32; i < 40; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
                         }
 
-                        if ((gf.mHighBit & unchecked((long)0x0000FF0000000000)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked((long)0x0000FF0000000000)) != 0) {
                             for (var i = 40; i < 48; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
                         }
                     }
 
-                    if ((gf.mHighBit & unchecked((long)0xFFFF000000000000)) != 0) {
-                        if ((gf.mHighBit & unchecked((long)0x00FF000000000000)) != 0) {
+                    if ((bit_set_128.m_HighBit & unchecked((long)0xFFFF000000000000)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked((long)0x00FF000000000000)) != 0) {
                             for (var i = 48; i < 56; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }
                         }
 
-                        if ((gf.mHighBit & unchecked((long)0xFF00000000000000)) != 0) {
+                        if ((bit_set_128.m_HighBit & unchecked((long)0xFF00000000000000)) != 0) {
                             for (var i = 56; i < 64; ++i) {
-                                if ((gf.mHighBit & (1L << i)) != 0) {
+                                if ((bit_set_128.m_HighBit & (1L << i)) != 0) {
                                     yield return i + 64;
                                 }
                             }

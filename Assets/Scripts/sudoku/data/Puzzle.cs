@@ -14,7 +14,7 @@ namespace sudoku.data
         public int RowCnt
         {
             get {
-                return mCells.GetLength(0);
+                return m_Cells.GetLength(0);
             }
         }
 
@@ -24,7 +24,7 @@ namespace sudoku.data
         public int ColCnt
         {
             get {
-                return mCells.GetLength(1);
+                return m_Cells.GetLength(1);
             }
         }
 
@@ -73,7 +73,7 @@ namespace sudoku.data
         public int this[int row, int col]
         {
             get {
-                if (mCells == null) {
+                if (m_Cells == null) {
                     return 0;
                 }
 
@@ -81,11 +81,11 @@ namespace sudoku.data
                     return 0;
                 }
 
-                return mCells[row, col];
+                return m_Cells[row, col];
             }
 
             set {
-                if (mCells == null) {
+                if (m_Cells == null) {
                     return;
                 }
 
@@ -93,19 +93,19 @@ namespace sudoku.data
                     return;
                 }
 
-                mCells[row, col] = value;
+                m_Cells[row, col] = value;
             }
         }
 
-        protected int[,] mGivenCells = null;
-        protected int[,] mCells = null;
-        protected int[,] mTempCells = null;
-        protected BitSet32[,] mCandidates = null;
+        protected int[,] m_GivenCells = null;
+        protected int[,] m_Cells = null;
+        protected int[,] m_TempCells = null;
+        protected BitSet32[,] m_Candidates = null;
 
-        protected BitSet32 mFinishedMask;
+        protected BitSet32 m_FinishedMask;
 
-        protected bool mHasError = false;
-        protected bool mIsFinished = false;
+        protected bool m_HasError = false;
+        protected bool m_IsFinished = false;
 
         /// <summary>
         /// 题目给定的题板
@@ -113,7 +113,7 @@ namespace sudoku.data
         public int[,] GivenCells
         {
             get {
-                return mGivenCells;
+                return m_GivenCells;
             }
         }
 
@@ -123,7 +123,7 @@ namespace sudoku.data
         public BitSet32[,] Candidates
         {
             get {
-                return mCandidates;
+                return m_Candidates;
             }
         }
 
@@ -133,7 +133,7 @@ namespace sudoku.data
         public bool IsFinished
         {
             get {
-                return mIsFinished;
+                return m_IsFinished;
             }
         }
 
@@ -172,16 +172,16 @@ namespace sudoku.data
 
         public void Init(asset.Puzzle puzzle_asset)
         {
-            mGivenCells = ClonePuzzle(puzzle_asset.GivenCells);
-            mCells = ClonePuzzle(mGivenCells);
+            m_GivenCells = ClonePuzzle(puzzle_asset.GivenCells);
+            m_Cells = ClonePuzzle(m_GivenCells);
 
-            mTempCells = new int[mCells.GetLength(0), mCells.GetLength(1)];
+            m_TempCells = new int[m_Cells.GetLength(0), m_Cells.GetLength(1)];
 
             for (var num = 1; num <= Size; ++num) {
-                mFinishedMask.SetBit(num);
+                m_FinishedMask.SetBit(num);
             }
 
-            mCandidates = new BitSet32[mCells.GetLength(0), mCells.GetLength(1)];
+            m_Candidates = new BitSet32[m_Cells.GetLength(0), m_Cells.GetLength(1)];
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace sudoku.data
                 flag = 0;
 
                 for (var c = 0; c < ColCnt; ++c) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number == 0) {
                         continue;
                     }
@@ -237,7 +237,7 @@ namespace sudoku.data
                 }
 
                 // 0000 0011 1111 1110
-                if (flag != mFinishedMask) {
+                if (flag != m_FinishedMask) {
                     return false;
                 }
             }
@@ -247,7 +247,7 @@ namespace sudoku.data
                 flag = 0;
 
                 for (var r = 0; r < RowCnt; ++r) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number == 0) {
                         continue;
                     }
@@ -256,7 +256,7 @@ namespace sudoku.data
                 }
 
                 // 0000 0011 1111 1110
-                if (flag != mFinishedMask) {
+                if (flag != m_FinishedMask) {
                     return false;
                 }
             }
@@ -270,7 +270,7 @@ namespace sudoku.data
                 flag = 0;
                 for (var r = box_r * box_cnt; r < box_r * box_cnt + box_cnt; ++r) {
                     for (var c = box_c * box_cnt; c < box_c * box_cnt + box_cnt; ++c) {
-                        var number = mCells[r, c];
+                        var number = m_Cells[r, c];
                         if (number == 0) {
                             continue;
                         }
@@ -280,7 +280,7 @@ namespace sudoku.data
                 }
 
                 // 0000 0011 1111 1110
-                if (flag != mFinishedMask) {
+                if (flag != m_FinishedMask) {
                     return false;
                 }
             }
@@ -313,7 +313,7 @@ namespace sudoku.data
                 error_flag.Reset();
 
                 for (var c = 0; c < ColCnt; ++c) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number == 0) {
                         continue;
                     }
@@ -330,7 +330,7 @@ namespace sudoku.data
                     has_error = true;
 
                     for (var c = 0; c < ColCnt; ++c) {
-                        var number = mCells[r, c];
+                        var number = m_Cells[r, c];
                         if (error_flag.HasBit(number)) {
                             error_cells[r, c] = number;
                         }
@@ -344,7 +344,7 @@ namespace sudoku.data
                 error_flag = 0;
 
                 for (var r = 0; r < RowCnt; ++r) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number == 0) {
                         continue;
                     }
@@ -361,7 +361,7 @@ namespace sudoku.data
                     has_error = true;
 
                     for (var r = 0; r < RowCnt; ++r) {
-                        var number = mCells[r, c];
+                        var number = m_Cells[r, c];
                         if (error_flag.HasBit(number)) {
                             error_cells[r, c] = number;
                         }
@@ -379,7 +379,7 @@ namespace sudoku.data
                 error_flag = 0;
                 for (var r = box_r * box_cnt; r < box_r * box_cnt + box_cnt; ++r) {
                     for (var c = box_c * box_cnt; c < box_c * box_cnt + box_cnt; ++c) {
-                        var number = mCells[r, c];
+                        var number = m_Cells[r, c];
                         if (number == 0) {
                             continue;
                         }
@@ -398,7 +398,7 @@ namespace sudoku.data
 
                     for (var r = box_r * box_cnt; r < box_r * box_cnt + box_cnt; ++r) {
                         for (var c = box_c * box_cnt; c < box_c * box_cnt + box_cnt; ++c) {
-                            var number = mCells[r, c];
+                            var number = m_Cells[r, c];
                             if (error_flag.HasBit(number)) {
                                 error_cells[r, c] = number;
                             }
@@ -452,13 +452,13 @@ namespace sudoku.data
         /// <returns></returns>
         protected bool RemoveCandidate(int row, int col, int num)
         {
-            var old_candidates = mCandidates[row, col];
+            var old_candidates = m_Candidates[row, col];
             
             if (old_candidates.HasBit(num)) { // 该数字之前就填了
-                mCandidates[row, col].UnSetBit(num); // 去掉该数字
+                m_Candidates[row, col].UnSetBit(num); // 去掉该数字
 
                 if (OnCandidateChanged != null) {
-                    OnCandidateChanged(row, col, old_candidates, mCandidates[row, col]);
+                    OnCandidateChanged(row, col, old_candidates, m_Candidates[row, col]);
                 }
 
                 return true;
@@ -475,24 +475,24 @@ namespace sudoku.data
         /// <param name="num"></param>
         protected void SetCandidateImpl(int row, int col, int num)
         {
-            var old_candidates = mCandidates[row, col];
+            var old_candidates = m_Candidates[row, col];
             if (num == 0) { // clear
-                mCandidates[row, col].Reset();
+                m_Candidates[row, col].Reset();
 
                 if (!old_candidates.IsEmpty) {
                     if (OnCandidateChanged != null) {
-                        OnCandidateChanged(row, col, old_candidates, mCandidates[row, col]);
+                        OnCandidateChanged(row, col, old_candidates, m_Candidates[row, col]);
                     }
                 }
             } else {
                 if (old_candidates.HasBit(num)) { // 该数字之前就填了
-                    mCandidates[row, col].UnSetBit(num); // 去掉该数字
+                    m_Candidates[row, col].UnSetBit(num); // 去掉该数字
                 } else {
-                    mCandidates[row, col].SetBit(num); // 添加该数字
+                    m_Candidates[row, col].SetBit(num); // 添加该数字
                 }
 
                 if (OnCandidateChanged != null) {
-                    OnCandidateChanged(row, col, old_candidates, mCandidates[row, col]);
+                    OnCandidateChanged(row, col, old_candidates, m_Candidates[row, col]);
                 }
             }
         }
@@ -510,7 +510,7 @@ namespace sudoku.data
                 return false;
             }
 
-            if (mCells[row, col] != 0) {
+            if (m_Cells[row, col] != 0) {
                 return false;
             }
 
@@ -538,7 +538,7 @@ namespace sudoku.data
             // check all rows
             for (var r = 0; r < RowCnt; ++r) {
                 for (var c = 0; c < ColCnt; ++c) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number == 0) {
                         continue;
                     }
@@ -550,7 +550,7 @@ namespace sudoku.data
             // check all columns
             for (var c = 0; c < ColCnt; ++c) {
                 for (var r = 0; r < RowCnt; ++r) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number == 0) {
                         continue;
                     }
@@ -567,7 +567,7 @@ namespace sudoku.data
 
                 for (var r = box_r * box_cnt; r < box_r * box_cnt + box_cnt; ++r) {
                     for (var c = box_c * box_cnt; c < box_c * box_cnt + box_cnt; ++c) {
-                        var number = mCells[r, c];
+                        var number = m_Cells[r, c];
                         if (number == 0) {
                             continue;
                         }
@@ -579,18 +579,18 @@ namespace sudoku.data
 
             for (var r = 0; r < RowCnt; ++r) {
                 for (var c = 0; c < ColCnt; ++c) {
-                    var number = mCells[r, c];
+                    var number = m_Cells[r, c];
                     if (number != 0) {
                         continue;
                     }
 
-                    var diff = mFinishedMask - (row_bit_sets[r] + col_bit_sets[c] + box_bit_sets[RowCol2Box(r, c)]);
+                    var diff = m_FinishedMask - (row_bit_sets[r] + col_bit_sets[c] + box_bit_sets[RowCol2Box(r, c)]);
 
-                    var old_candidates = mCandidates[r, c];
-                    mCandidates[r, c] = diff;
+                    var old_candidates = m_Candidates[r, c];
+                    m_Candidates[r, c] = diff;
 
                     if (OnCandidateChanged != null) {
-                        OnCandidateChanged(r, c, old_candidates, mCandidates[r, c]);
+                        OnCandidateChanged(r, c, old_candidates, m_Candidates[r, c]);
                     }
                 }
             }
@@ -631,7 +631,7 @@ namespace sudoku.data
                 return false;
             }
 
-            if (mGivenCells[row, col] != 0) {
+            if (m_GivenCells[row, col] != 0) {
                 return false;
             }
 
@@ -640,28 +640,28 @@ namespace sudoku.data
 
             if (CheckFinish()) {
                 // clear error
-                if (mHasError) {
-                    mHasError = false;
+                if (m_HasError) {
+                    m_HasError = false;
 
                     if (OnError != null) {
                         OnError(null);
                     }
                 }
 
-                mIsFinished = true;
+                m_IsFinished = true;
                 if (OnFinished != null) {
                     OnFinished();
                 }
             }
             else {
-                if (CheckError(mTempCells)) {
-                    mHasError = true;
+                if (CheckError(m_TempCells)) {
+                    m_HasError = true;
 
                     if (OnError != null) {
-                        OnError(mTempCells);
+                        OnError(m_TempCells);
                     }
-                } else if (mHasError) {
-                    mHasError = false;
+                } else if (m_HasError) {
+                    m_HasError = false;
 
                     if (OnError != null) {
                         OnError(null);
@@ -702,26 +702,29 @@ namespace sudoku.data
 
         public object Clone()
         {
-            var ret = new Puzzle();
-            ret.mGivenCells = ClonePuzzle(this.mGivenCells);
-            ret.mCells = ClonePuzzle(this.mCells);
+            var ret = new Puzzle
+            {
+                m_GivenCells = ClonePuzzle(this.m_GivenCells),
+                m_Cells = ClonePuzzle(this.m_Cells),
 
-            ret.mTempCells = new int[this.RowCnt, this.ColCnt];
-            ret.mFinishedMask = this.mFinishedMask;
+                m_TempCells = new int[this.RowCnt, this.ColCnt],
+                m_FinishedMask = this.m_FinishedMask,
 
-            ret.mCandidates = new BitSet32[this.RowCnt, this.ColCnt];
+                m_HasError = this.m_HasError,
+
+                OnCellChanged = this.OnCellChanged,
+                OnError = this.OnError,
+                OnFinished = this.OnFinished,
+                OnCandidateChanged = this.OnCandidateChanged,
+
+                m_Candidates = new BitSet32[this.RowCnt, this.ColCnt]
+            };
+
             for (var r = 0; r < this.RowCnt; ++r) {
                 for (var c = 0; c < this.ColCnt; ++c) {
-                    ret.mCandidates[r, c] = this.mCandidates[r, c];
+                    ret.m_Candidates[r, c] = this.m_Candidates[r, c];
                 }
             }
-
-            ret.mHasError = this.mHasError;
-
-            ret.OnCellChanged = this.OnCellChanged;
-            ret.OnError = this.OnError;
-            ret.OnFinished = this.OnFinished;
-            ret.OnCandidateChanged = this.OnCandidateChanged;
 
             return ret;
         }

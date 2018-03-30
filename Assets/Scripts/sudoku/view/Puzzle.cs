@@ -15,7 +15,7 @@ namespace sudoku.view
     {
         public data.Puzzle PuzzleData;
 
-        protected List<data.Puzzle> mSavedPuzzleDataList = new List<data.Puzzle>();
+        protected List<data.Puzzle> m_SavedPuzzleDataList = new List<data.Puzzle>();
 
         public asset.Puzzle PuzzleAsset;
         public asset.Skin Skin;
@@ -37,10 +37,10 @@ namespace sudoku.view
             }
         }
 
-        protected Cell[,] mCells = null;
-        protected NumberBtn[] mNumberBtns = null;
+        protected Cell[,] m_Cells = null;
+        protected NumberBtn[] m_NumberBtns = null;
 
-        protected Dictionary<KeyCode, int> mKeyCode2NumberDict = new Dictionary<KeyCode, int>()
+        protected Dictionary<KeyCode, int> m_KeyCode2NumberDict = new Dictionary<KeyCode, int>()
         {
             { KeyCode.Alpha1, 1 },
             { KeyCode.Alpha2, 2 },
@@ -121,7 +121,7 @@ namespace sudoku.view
                     StartCoroutine(solver.Run());
                 }
 
-                foreach (var kvp in mKeyCode2NumberDict) {
+                foreach (var kvp in m_KeyCode2NumberDict) {
                     if (Input.GetKeyUp(kvp.Key)) {
                         if (mFillMode == EPuzzleFillMode.Candidate) {
                             PuzzleData.TrySetCandidateAt(SelectedCell.Row, SelectedCell.Col, kvp.Value);
@@ -139,7 +139,7 @@ namespace sudoku.view
             var box_row_cnt = PuzzleData.BoxRowCnt;
             var box_col_cnt = PuzzleData.BoxColCnt;
 
-            mCells = new Cell[PuzzleData.RowCnt, PuzzleData.ColCnt];
+            m_Cells = new Cell[PuzzleData.RowCnt, PuzzleData.ColCnt];
 
             for (var r = 0; r < PuzzleData.RowCnt; ++r) {
                 for (var c = 0; c < PuzzleData.ColCnt; ++c) {
@@ -172,7 +172,7 @@ namespace sudoku.view
                     cell_view.Col = c;
                     cell_view.Button.onClick.AddListener(delegate () { OnCellClick(cell_view); });
 
-                    mCells[r, c] = cell_view;
+                    m_Cells[r, c] = cell_view;
                 }
             }
         }
@@ -183,7 +183,7 @@ namespace sudoku.view
             var border = 3;
             var margin = 3;
 
-            mNumberBtns = new NumberBtn[PuzzleData.Size];
+            m_NumberBtns = new NumberBtn[PuzzleData.Size];
 
             for (var i = 0; i < PuzzleData.Size; ++i) {
                 var number_btn_go = GameObject.Instantiate(NumberBtnPrefab);
@@ -212,7 +212,7 @@ namespace sudoku.view
                     }
                 });
 
-                mNumberBtns[i] = number_btn_view;
+                m_NumberBtns[i] = number_btn_view;
             }
         }
 
@@ -220,14 +220,14 @@ namespace sudoku.view
         {
             mFillMode = mode;
             var color = mFillMode == EPuzzleFillMode.Candidate ? Color.green : Color.white;
-            foreach (var number_btn in mNumberBtns) {
+            foreach (var number_btn in m_NumberBtns) {
                 number_btn.BgImg.color = color;
             }
         }
 
         protected void ClearAllHighlight()
         {
-            foreach (var cell in mCells) {
+            foreach (var cell in m_Cells) {
                 cell.Highlight(false);
             }
         }
@@ -235,14 +235,14 @@ namespace sudoku.view
         protected void HighlightRow(int row)
         {
             for (var c = 0; c < PuzzleData.ColCnt; ++c) {
-                mCells[row, c].Highlight(true);
+                m_Cells[row, c].Highlight(true);
             }
         }
 
         protected void HighlightColumn(int column)
         {
             for (var r = 0; r < PuzzleData.RowCnt; ++r) {
-                mCells[r, column].Highlight(true);
+                m_Cells[r, column].Highlight(true);
             }
         }
 
@@ -255,14 +255,14 @@ namespace sudoku.view
             var box_col_cnt = PuzzleData.BoxColCnt;
             for (var r = row; r < row + box_row_cnt; ++r) {
                 for (var c = col; c < col + box_col_cnt; ++c) {
-                    mCells[r, c].Highlight(true);
+                    m_Cells[r, c].Highlight(true);
                 }
             }
         }
 
         protected void HighlightNumber(int number)
         {
-            foreach (var cell in mCells) {
+            foreach (var cell in m_Cells) {
                 var cell_number = PuzzleData[cell.Row, cell.Col];
                 if (cell_number == number) {
                     cell.Highlight(true);
@@ -311,7 +311,7 @@ namespace sudoku.view
 
         protected void OnCellDataChanged(int row, int col, int old_number, int number)
         {
-            var cell_view = mCells[row, col];
+            var cell_view = m_Cells[row, col];
 
             if (number != 0) {
                 cell_view.NumberImg.gameObject.SetActive(true);
@@ -326,7 +326,7 @@ namespace sudoku.view
 
         protected void OnCandidateChanged(int row, int col, data.BitSet32 old_candidates, data.BitSet32 candidates)
         {
-            var cell_view = mCells[row, col];
+            var cell_view = m_Cells[row, col];
 
             if (!candidates.IsEmpty) {
                 cell_view.CandidatesRoot.SetActive(true);
@@ -350,7 +350,7 @@ namespace sudoku.view
 
         protected void OnPuzzleError(int[,] error_cells)
         {
-            foreach (var cell in mCells) {
+            foreach (var cell in m_Cells) {
                 cell.Error(error_cells != null && error_cells[cell.Row, cell.Col] != 0);
             }
         }
@@ -358,24 +358,24 @@ namespace sudoku.view
         public void SavePuzzle()
         {
             var clone_puzzle = PuzzleData.Clone() as data.Puzzle;
-            if (mSavedPuzzleDataList.Count > 0) {
-                mSavedPuzzleDataList[0] = clone_puzzle;
+            if (m_SavedPuzzleDataList.Count > 0) {
+                m_SavedPuzzleDataList[0] = clone_puzzle;
             }
             else {
-                mSavedPuzzleDataList.Add(clone_puzzle);
+                m_SavedPuzzleDataList.Add(clone_puzzle);
             }
         }
 
         public void LoadPuzzle(int index)
         {
-            if (index >= 0 && index < mSavedPuzzleDataList.Count) {
-                PuzzleData = mSavedPuzzleDataList[index].Clone() as data.Puzzle;
+            if (index >= 0 && index < m_SavedPuzzleDataList.Count) {
+                PuzzleData = m_SavedPuzzleDataList[index].Clone() as data.Puzzle;
 
-                for (var r = 0; r < mCells.GetLength(0); ++r) {
-                    for (var c = 0; c < mCells.GetLength(1); ++c) {
+                for (var r = 0; r < m_Cells.GetLength(0); ++r) {
+                    for (var c = 0; c < m_Cells.GetLength(1); ++c) {
                         var cell_given_number = PuzzleData.GivenCells[r, c];
                         var cell_number = PuzzleData[r, c];
-                        var cell_view = mCells[r, c];
+                        var cell_view = m_Cells[r, c];
 
                         if (cell_given_number == 0) {
                             cell_view.GivenBgImg.sprite = Skin.CellBg;

@@ -5,14 +5,14 @@ namespace sudoku.data
 {
     public class PuzzleAutoSolver
     {
-        protected Puzzle mPuzzle;
+        protected Puzzle m_Puzzle;
 
-        protected BitSet128 mFinishedGridMask;
-        protected BitSet128[] mRowMasks;
-        protected BitSet128[] mColMasks;
-        protected BitSet128[] mBoxMasks;
+        protected BitSet128 m_FinishedGridMask;
+        protected BitSet128[] m_RowMasks;
+        protected BitSet128[] m_ColMasks;
+        protected BitSet128[] m_BoxMasks;
 
-        protected BitSet32 mFinishedDigitMask;
+        protected BitSet32 m_FinishedDigitMask;
 
         protected class DigitInfo
         {
@@ -20,86 +20,87 @@ namespace sudoku.data
             public BitSet32[] rows;
             public BitSet32[] cols;
         }
-        protected DigitInfo[] mDigitInfos;
+        protected DigitInfo[] m_DigitInfos;
 
         public PuzzleAutoSolver(Puzzle puzzle)
         {
-            mPuzzle = puzzle;
+            m_Puzzle = puzzle;
 
             Init();
         }
 
         protected int RowCol2Index(int row, int col)
         {
-            return row * mPuzzle.Size + col;
+            return row * m_Puzzle.Size + col;
         }
 
         protected void Index2RowCol(int idx, out int row, out int col)
         {
-            row = Mathf.FloorToInt(idx / mPuzzle.Size);
-            col = idx % mPuzzle.Size;
+            row = Mathf.FloorToInt(idx / m_Puzzle.Size);
+            col = idx % m_Puzzle.Size;
         }
 
         protected void Init()
         {
-            mRowMasks = new BitSet128[mPuzzle.Size];
-            mColMasks = new BitSet128[mPuzzle.Size];
-            mBoxMasks = new BitSet128[mPuzzle.Size];
+            m_RowMasks = new BitSet128[m_Puzzle.Size];
+            m_ColMasks = new BitSet128[m_Puzzle.Size];
+            m_BoxMasks = new BitSet128[m_Puzzle.Size];
 
-            for (var r = 0; r < mPuzzle.RowCnt; ++r) {
-                for (var c = 0; c < mPuzzle.ColCnt; ++ c) {
+            for (var r = 0; r < m_Puzzle.RowCnt; ++r) {
+                for (var c = 0; c < m_Puzzle.ColCnt; ++ c) {
                     var idx = RowCol2Index(r, c);
-                    mRowMasks[r].SetBit(idx);
-                    mColMasks[c].SetBit(idx);
-                    mBoxMasks[mPuzzle.RowCol2Box(r, c)].SetBit(idx);
+                    m_RowMasks[r].SetBit(idx);
+                    m_ColMasks[c].SetBit(idx);
+                    m_BoxMasks[m_Puzzle.RowCol2Box(r, c)].SetBit(idx);
 
-                    mFinishedGridMask.SetBit(idx);
+                    m_FinishedGridMask.SetBit(idx);
                 }
             }
 
-            for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                mFinishedDigitMask.SetBit(digit);
+            for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                m_FinishedDigitMask.SetBit(digit);
             }
         }
 
         protected void Prepare()
         {
-            if (mDigitInfos == null) {
-                mDigitInfos = new DigitInfo[mPuzzle.Size];
-                for (var i = 0; i < mDigitInfos.Length; ++i) {
-                    mDigitInfos[i] = new DigitInfo();
-                    mDigitInfos[i].rows = new BitSet32[mPuzzle.Size];
-                    mDigitInfos[i].cols = new BitSet32[mPuzzle.Size];
+            if (m_DigitInfos == null) {
+                m_DigitInfos = new DigitInfo[m_Puzzle.Size];
+                for (var i = 0; i < m_DigitInfos.Length; ++i) {
+                    m_DigitInfos[i] = new DigitInfo
+                    {
+                        rows = new BitSet32[m_Puzzle.Size],
+                        cols = new BitSet32[m_Puzzle.Size]
+                    };
                 }
             }
             else {
-                for (var i = 0; i < mDigitInfos.Length; ++i) {
-                    mDigitInfos[i].grid.Reset();
+                for (var i = 0; i < m_DigitInfos.Length; ++i) {
+                    m_DigitInfos[i].grid.Reset();
 
-                    for (var r = 0; r < mDigitInfos[i].rows.Length; ++r) {
-                        mDigitInfos[i].rows[r].Reset();
+                    for (var r = 0; r < m_DigitInfos[i].rows.Length; ++r) {
+                        m_DigitInfos[i].rows[r].Reset();
                     }
-                    for (var c = 0; c < mDigitInfos[i].cols.Length; ++c) {
-                        mDigitInfos[i].cols[c].Reset();
+                    for (var c = 0; c < m_DigitInfos[i].cols.Length; ++c) {
+                        m_DigitInfos[i].cols[c].Reset();
                     }
                 }
             }
 
             // mDigitInfos[i].grid保存了数字i+1，其候选数在题板上的分布情况
             // 注意这里的下标是从0开始的，也就是说mDigitInfos[0]是数字1的分布情况
-
-            for (var r = 0; r < mPuzzle.RowCnt; ++r) {
-                for (var c = 0; c < mPuzzle.ColCnt; ++c) {
-                    var candidates = mPuzzle.Candidates[r, c];
+            for (var r = 0; r < m_Puzzle.RowCnt; ++r) {
+                for (var c = 0; c < m_Puzzle.ColCnt; ++c) {
+                    var candidates = m_Puzzle.Candidates[r, c];
                     if (candidates == 0) {
                         continue;
                     }
 
                     var idx = RowCol2Index(r, c);
-                    foreach (var digit in BitSet32.AllBits(candidates, mPuzzle.Size)) {
-                        mDigitInfos[digit - 1].grid.SetBit(idx);
-                        mDigitInfos[digit - 1].rows[r].SetBit(c);
-                        mDigitInfos[digit - 1].cols[c].SetBit(r);
+                    foreach (var digit in BitSet32.AllBits(candidates, m_Puzzle.Size)) {
+                        m_DigitInfos[digit - 1].grid.SetBit(idx);
+                        m_DigitInfos[digit - 1].rows[r].SetBit(c);
+                        m_DigitInfos[digit - 1].cols[c].SetBit(r);
                     }
                 }
             }
@@ -107,9 +108,9 @@ namespace sudoku.data
 
         protected bool CheckError()
         {
-            for (var r = 0; r < mPuzzle.RowCnt; ++r) {
-                for (var c = 0; c < mPuzzle.ColCnt; ++c) {
-                    if (mPuzzle.GivenCells[r, c] == 0 && mPuzzle[r, c] == 0 && mPuzzle.Candidates[r, c] == 0) {
+            for (var r = 0; r < m_Puzzle.RowCnt; ++r) {
+                for (var c = 0; c < m_Puzzle.ColCnt; ++c) {
+                    if (m_Puzzle.GivenCells[r, c] == 0 && m_Puzzle[r, c] == 0 && m_Puzzle.Candidates[r, c] == 0) {
                         return true;
                     }
                 }
@@ -120,10 +121,10 @@ namespace sudoku.data
 
         public IEnumerator Run()
         {
-            mPuzzle.FillAllCandidates();
+            m_Puzzle.FillAllCandidates();
 
             int step = 1;
-            while (!mPuzzle.IsFinished) {
+            while (!m_Puzzle.IsFinished) {
                 yield return new WaitForSeconds(0.2f);
 
                 if (CheckError()) {
@@ -214,10 +215,10 @@ namespace sudoku.data
                 int row, col;
                 Index2RowCol(idx, out row, out col);
 
-                var candidates = mPuzzle.Candidates[row, col];
+                var candidates = m_Puzzle.Candidates[row, col];
                 if (candidates.HasBit(digit)) {
                     // 填入数字后，再次填入是删除操作。。
-                    mPuzzle.TrySetCandidateAt(row, col, digit);
+                    m_Puzzle.TrySetCandidateAt(row, col, digit);
                     ret = true;
                 }
             }
@@ -232,14 +233,14 @@ namespace sudoku.data
                 int row, col;
                 Index2RowCol(idx, out row, out col);
 
-                var cur_candidates = mPuzzle.Candidates[row, col];
+                var cur_candidates = m_Puzzle.Candidates[row, col];
                 var need_eliminate_candidates = cur_candidates.Intersect(candidates);
 
                 if (!need_eliminate_candidates.IsEmpty) {
                     ret = true;
-                    foreach (var digit in BitSet32.AllBits(need_eliminate_candidates, mPuzzle.Size)) {
+                    foreach (var digit in BitSet32.AllBits(need_eliminate_candidates, m_Puzzle.Size)) {
                         // 填入数字后，再次填入是删除操作。。
-                        mPuzzle.TrySetCandidateAt(row, col, digit);
+                        m_Puzzle.TrySetCandidateAt(row, col, digit);
                     }
                 }
             }
@@ -254,15 +255,15 @@ namespace sudoku.data
             // naked single
 
             // 检查是否存在一个格子内只有一个可选数字的情况
-            for (var r = 0; r < mPuzzle.RowCnt; ++r) {
-                for (var c = 0; c < mPuzzle.ColCnt; ++c) {
-                    var candidates = mPuzzle.Candidates[r, c];
+            for (var r = 0; r < m_Puzzle.RowCnt; ++r) {
+                for (var c = 0; c < m_Puzzle.ColCnt; ++c) {
+                    var candidates = m_Puzzle.Candidates[r, c];
                     if (candidates.IsEmpty || candidates.BitCount > 1) {
                         continue;
                     }
 
-                    foreach (var digit in BitSet32.AllBits(candidates, mPuzzle.Size)) {
-                        mPuzzle.TrySetCellAt(r, c, digit);
+                    foreach (var digit in BitSet32.AllBits(candidates, m_Puzzle.Size)) {
+                        m_Puzzle.TrySetCellAt(r, c, digit);
                         return true;
                     }
                 }
@@ -287,7 +288,7 @@ namespace sudoku.data
                         int row, col;
                         Index2RowCol(idx, out row, out col);
 
-                        mPuzzle.TrySetCellAt(row, col, digit);
+                        m_Puzzle.TrySetCellAt(row, col, digit);
                         return true;
                     }
                 }
@@ -300,24 +301,24 @@ namespace sudoku.data
         {
             // hidden single
 
-            for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                var digit_grid = mDigitInfos[digit - 1].grid;
+            for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                var digit_grid = m_DigitInfos[digit - 1].grid;
                 if (digit_grid.IsEmpty) {
                     continue;
                 }
 
                 // 检查是否存在某一行，其中有某一个数字只能填在一个格子的情况
-                if (HiddenSingle_CheckIntersect(digit, digit_grid, mRowMasks)) {
+                if (HiddenSingle_CheckIntersect(digit, digit_grid, m_RowMasks)) {
                     return true;
                 }
 
                 // 检查是否存在某一列，其中有某一个数字只能填在一个格子的情况
-                if (HiddenSingle_CheckIntersect(digit, digit_grid, mColMasks)) {
+                if (HiddenSingle_CheckIntersect(digit, digit_grid, m_ColMasks)) {
                     return true;
                 }
 
                 // 检查是否存在某一宫，其中有某一个数字只能填在一个格子的情况
-                if (HiddenSingle_CheckIntersect(digit, digit_grid, mBoxMasks)) {
+                if (HiddenSingle_CheckIntersect(digit, digit_grid, m_BoxMasks)) {
                     return true;
                 }
             }
@@ -330,8 +331,8 @@ namespace sudoku.data
         protected bool HiddenPairs_CheckIntersect(BitSet128[] sub_sets)
         {
             for (var i = 0; i < sub_sets.Length; ++i) {
-                for (var digit = 1; digit <= mPuzzle.Size - 1; ++digit) {
-                    var digit_grid = mDigitInfos[digit - 1].grid;
+                for (var digit = 1; digit <= m_Puzzle.Size - 1; ++digit) {
+                    var digit_grid = m_DigitInfos[digit - 1].grid;
                     if (digit_grid.IsEmpty) {
                         continue;
                     }
@@ -341,8 +342,8 @@ namespace sudoku.data
                         continue;
                     }
 
-                    for (var digit2 = digit + 1; digit2 <= mPuzzle.Size; ++digit2) {
-                        var digit2_grid = mDigitInfos[digit2 - 1].grid;
+                    for (var digit2 = digit + 1; digit2 <= m_Puzzle.Size; ++digit2) {
+                        var digit2_grid = m_DigitInfos[digit2 - 1].grid;
                         if (digit2_grid.IsEmpty) {
                             continue;
                         }
@@ -355,7 +356,7 @@ namespace sudoku.data
                             pair_set.SetBit(digit);
                             pair_set.SetBit(digit2);
 
-                            var reverse_pair_set = mFinishedDigitMask - pair_set;
+                            var reverse_pair_set = m_FinishedDigitMask - pair_set;
                             if (EliminateCandidates(intersect_set, reverse_pair_set)) {
                                 return true;
                             }
@@ -369,15 +370,15 @@ namespace sudoku.data
 
         protected bool TryHiddenPairs()
         {
-            if (HiddenPairs_CheckIntersect(mRowMasks)) {
+            if (HiddenPairs_CheckIntersect(m_RowMasks)) {
                 return true;
             }
 
-            if (HiddenPairs_CheckIntersect(mColMasks)) {
+            if (HiddenPairs_CheckIntersect(m_ColMasks)) {
                 return true;
             }
 
-            if (HiddenPairs_CheckIntersect(mBoxMasks)) {
+            if (HiddenPairs_CheckIntersect(m_BoxMasks)) {
                 return true;
             }
 
@@ -389,8 +390,8 @@ namespace sudoku.data
         protected bool HiddenTriple_CheckIntersect(BitSet128[] sub_sets)
         {
             for (var i = 0; i < sub_sets.Length; ++i) {
-                for (var d1 = 1; d1 <= mPuzzle.Size - 2; ++d1) { // d for digit
-                    var d1_grid = mDigitInfos[d1 - 1].grid;
+                for (var d1 = 1; d1 <= m_Puzzle.Size - 2; ++d1) { // d for digit
+                    var d1_grid = m_DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
@@ -405,8 +406,8 @@ namespace sudoku.data
                         continue;
                     }
 
-                    for (var d2 = d1 + 1; d2 <= mPuzzle.Size - 1; ++d2) {
-                        var d2_grid = mDigitInfos[d2 - 1].grid;
+                    for (var d2 = d1 + 1; d2 <= m_Puzzle.Size - 1; ++d2) {
+                        var d2_grid = m_DigitInfos[d2 - 1].grid;
                         if (d2_grid.IsEmpty) {
                             continue;
                         }
@@ -426,8 +427,8 @@ namespace sudoku.data
                             continue;
                         }
 
-                        for (var d3 = d2 + 1; d3 <= mPuzzle.Size; ++d3) {
-                            var d3_grid = mDigitInfos[d3 - 1].grid;
+                        for (var d3 = d2 + 1; d3 <= m_Puzzle.Size; ++d3) {
+                            var d3_grid = m_DigitInfos[d3 - 1].grid;
                             if (d3_grid.IsEmpty) {
                                 continue;
                             }
@@ -451,7 +452,7 @@ namespace sudoku.data
                                 triple_set.SetBit(d2);
                                 triple_set.SetBit(d3);
 
-                                var reverse_triple_set = mFinishedDigitMask - triple_set;
+                                var reverse_triple_set = m_FinishedDigitMask - triple_set;
                                 if (EliminateCandidates(d1_d2_d3_set, reverse_triple_set)) {
                                     return true;
                                 }
@@ -466,15 +467,15 @@ namespace sudoku.data
 
         protected bool TryHiddenTripe()
         {
-            if (HiddenTriple_CheckIntersect(mRowMasks)) {
+            if (HiddenTriple_CheckIntersect(m_RowMasks)) {
                 return true;
             }
 
-            if (HiddenTriple_CheckIntersect(mColMasks)) {
+            if (HiddenTriple_CheckIntersect(m_ColMasks)) {
                 return true;
             }
 
-            if (HiddenTriple_CheckIntersect(mBoxMasks)) {
+            if (HiddenTriple_CheckIntersect(m_BoxMasks)) {
                 return true;
             }
 
@@ -486,8 +487,8 @@ namespace sudoku.data
         protected bool HiddenQuad_CheckIntersect(BitSet128[] sub_sets)
         {
             for (var i = 0; i < sub_sets.Length; ++i) {
-                for (var d1 = 1; d1 <= mPuzzle.Size - 3; ++d1) { // d for digit
-                    var d1_grid = mDigitInfos[d1 - 1].grid;
+                for (var d1 = 1; d1 <= m_Puzzle.Size - 3; ++d1) { // d for digit
+                    var d1_grid = m_DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
@@ -502,8 +503,8 @@ namespace sudoku.data
                         continue;
                     }
 
-                    for (var d2 = d1 + 1; d2 <= mPuzzle.Size - 2; ++d2) {
-                        var d2_grid = mDigitInfos[d2 - 1].grid;
+                    for (var d2 = d1 + 1; d2 <= m_Puzzle.Size - 2; ++d2) {
+                        var d2_grid = m_DigitInfos[d2 - 1].grid;
                         if (d2_grid.IsEmpty) {
                             continue;
                         }
@@ -524,8 +525,8 @@ namespace sudoku.data
                             continue;
                         }
 
-                        for (var d3 = d2 + 1; d3 <= mPuzzle.Size - 1; ++d3) {
-                            var d3_grid = mDigitInfos[d3 - 1].grid;
+                        for (var d3 = d2 + 1; d3 <= m_Puzzle.Size - 1; ++d3) {
+                            var d3_grid = m_DigitInfos[d3 - 1].grid;
                             if (d3_grid.IsEmpty) {
                                 continue;
                             }
@@ -545,8 +546,8 @@ namespace sudoku.data
                                 continue;
                             }
 
-                            for (var d4 = d3 + 1; d4 <= mPuzzle.Size; ++d4) {
-                                var d4_grid = mDigitInfos[d4 - 1].grid;
+                            for (var d4 = d3 + 1; d4 <= m_Puzzle.Size; ++d4) {
+                                var d4_grid = m_DigitInfos[d4 - 1].grid;
                                 if (d4_grid.IsEmpty) {
                                     continue;
                                 }
@@ -571,7 +572,7 @@ namespace sudoku.data
                                     quad_set.SetBit(d3);
                                     quad_set.SetBit(d4);
 
-                                    var reverse_quad_set = mFinishedDigitMask - quad_set;
+                                    var reverse_quad_set = m_FinishedDigitMask - quad_set;
                                     if (EliminateCandidates(d1_d2_d3_d4_set, reverse_quad_set)) {
                                         return true;
                                     }
@@ -587,15 +588,15 @@ namespace sudoku.data
 
         protected bool TryHiddenQuad()
         {
-            if (HiddenQuad_CheckIntersect(mRowMasks)) {
+            if (HiddenQuad_CheckIntersect(m_RowMasks)) {
                 return true;
             }
 
-            if (HiddenQuad_CheckIntersect(mColMasks)) {
+            if (HiddenQuad_CheckIntersect(m_ColMasks)) {
                 return true;
             }
 
-            if (HiddenQuad_CheckIntersect(mBoxMasks)) {
+            if (HiddenQuad_CheckIntersect(m_BoxMasks)) {
                 return true;
             }
 
@@ -607,8 +608,8 @@ namespace sudoku.data
         protected bool NakedPairs_CheckIntersect(BitSet128[] sub_sets)
         {
             for (var i = 0; i < sub_sets.Length; ++i) {
-                for (var digit = 1; digit <= mPuzzle.Size - 1; ++digit) {
-                    var digit_grid = mDigitInfos[digit - 1].grid;
+                for (var digit = 1; digit <= m_Puzzle.Size - 1; ++digit) {
+                    var digit_grid = m_DigitInfos[digit - 1].grid;
                     if (digit_grid.IsEmpty) {
                         continue;
                     }
@@ -618,8 +619,8 @@ namespace sudoku.data
                         continue;
                     }
 
-                    for (var digit2 = digit + 1; digit2 <= mPuzzle.Size; ++digit2) {
-                        var digit2_grid = mDigitInfos[digit2 - 1].grid;
+                    for (var digit2 = digit + 1; digit2 <= m_Puzzle.Size; ++digit2) {
+                        var digit2_grid = m_DigitInfos[digit2 - 1].grid;
                         if (digit2_grid.IsEmpty) {
                             continue;
                         }
@@ -637,7 +638,7 @@ namespace sudoku.data
                                 int row, col;
                                 Index2RowCol(idx, out row, out col);
 
-                                var candidates = mPuzzle.Candidates[row, col];
+                                var candidates = m_Puzzle.Candidates[row, col];
                                 if (candidates != pair_set) {
                                     is_naked_pair = false;
                                     break;
@@ -660,15 +661,15 @@ namespace sudoku.data
 
         protected bool TryNakedPairs()
         {
-            if (NakedPairs_CheckIntersect(mRowMasks)) {
+            if (NakedPairs_CheckIntersect(m_RowMasks)) {
                 return true;
             }
 
-            if (NakedPairs_CheckIntersect(mColMasks)) {
+            if (NakedPairs_CheckIntersect(m_ColMasks)) {
                 return true;
             }
 
-            if (NakedPairs_CheckIntersect(mBoxMasks)) {
+            if (NakedPairs_CheckIntersect(m_BoxMasks)) {
                 return true;
             }
 
@@ -680,8 +681,8 @@ namespace sudoku.data
         protected bool NakedTriple_CheckIntersect(BitSet128[] sub_sets)
         {
             for (var i = 0; i < sub_sets.Length; ++i) {
-                for (var d1 = 1; d1 <= mPuzzle.Size - 2; ++d1) { // d for digit
-                    var d1_grid = mDigitInfos[d1 - 1].grid;
+                for (var d1 = 1; d1 <= m_Puzzle.Size - 2; ++d1) { // d for digit
+                    var d1_grid = m_DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
@@ -696,8 +697,8 @@ namespace sudoku.data
                         continue;
                     }
 
-                    for (var d2 = d1 + 1; d2 <= mPuzzle.Size - 1; ++d2) {
-                        var d2_grid = mDigitInfos[d2 - 1].grid;
+                    for (var d2 = d1 + 1; d2 <= m_Puzzle.Size - 1; ++d2) {
+                        var d2_grid = m_DigitInfos[d2 - 1].grid;
                         if (d2_grid.IsEmpty) {
                             continue;
                         }
@@ -717,8 +718,8 @@ namespace sudoku.data
                             continue;
                         }
 
-                        for (var d3 = d2 + 1; d3 <= mPuzzle.Size; ++d3) {
-                            var d3_grid = mDigitInfos[d3 - 1].grid;
+                        for (var d3 = d2 + 1; d3 <= m_Puzzle.Size; ++d3) {
+                            var d3_grid = m_DigitInfos[d3 - 1].grid;
                             if (d3_grid.IsEmpty) {
                                 continue;
                             }
@@ -756,15 +757,15 @@ namespace sudoku.data
 
         protected bool TryNakedTriple()
         {
-            if (NakedTriple_CheckIntersect(mRowMasks)) {
+            if (NakedTriple_CheckIntersect(m_RowMasks)) {
                 return true;
             }
 
-            if (NakedTriple_CheckIntersect(mColMasks)) {
+            if (NakedTriple_CheckIntersect(m_ColMasks)) {
                 return true;
             }
 
-            if (NakedTriple_CheckIntersect(mBoxMasks)) {
+            if (NakedTriple_CheckIntersect(m_BoxMasks)) {
                 return true;
             }
 
@@ -776,8 +777,8 @@ namespace sudoku.data
         protected bool NakedQuad_CheckIntersect(BitSet128[] sub_sets)
         {
             for (var i = 0; i < sub_sets.Length; ++i) {
-                for (var d1 = 1; d1 <= mPuzzle.Size - 3; ++d1) { // d for digit
-                    var d1_grid = mDigitInfos[d1 - 1].grid;
+                for (var d1 = 1; d1 <= m_Puzzle.Size - 3; ++d1) { // d for digit
+                    var d1_grid = m_DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
@@ -792,8 +793,8 @@ namespace sudoku.data
                         continue;
                     }
 
-                    for (var d2 = d1 + 1; d2 <= mPuzzle.Size - 2; ++d2) {
-                        var d2_grid = mDigitInfos[d2 - 1].grid;
+                    for (var d2 = d1 + 1; d2 <= m_Puzzle.Size - 2; ++d2) {
+                        var d2_grid = m_DigitInfos[d2 - 1].grid;
                         if (d2_grid.IsEmpty) {
                             continue;
                         }
@@ -814,8 +815,8 @@ namespace sudoku.data
                             continue;
                         }
 
-                        for (var d3 = d2 + 1; d3 <= mPuzzle.Size - 1; ++d3) {
-                            var d3_grid = mDigitInfos[d3 - 1].grid;
+                        for (var d3 = d2 + 1; d3 <= m_Puzzle.Size - 1; ++d3) {
+                            var d3_grid = m_DigitInfos[d3 - 1].grid;
                             if (d3_grid.IsEmpty) {
                                 continue;
                             }
@@ -835,8 +836,8 @@ namespace sudoku.data
                                 continue;
                             }
 
-                            for (var d4 = d3 + 1; d4 <= mPuzzle.Size; ++d4) {
-                                var d4_grid = mDigitInfos[d4 - 1].grid;
+                            for (var d4 = d3 + 1; d4 <= m_Puzzle.Size; ++d4) {
+                                var d4_grid = m_DigitInfos[d4 - 1].grid;
                                 if (d4_grid.IsEmpty) {
                                     continue;
                                 }
@@ -877,15 +878,15 @@ namespace sudoku.data
 
         protected bool TryNakedQuad()
         {
-            if (NakedQuad_CheckIntersect(mRowMasks)) {
+            if (NakedQuad_CheckIntersect(m_RowMasks)) {
                 return true;
             }
 
-            if (NakedQuad_CheckIntersect(mColMasks)) {
+            if (NakedQuad_CheckIntersect(m_ColMasks)) {
                 return true;
             }
 
-            if (NakedQuad_CheckIntersect(mBoxMasks)) {
+            if (NakedQuad_CheckIntersect(m_BoxMasks)) {
                 return true;
             }
 
@@ -897,23 +898,23 @@ namespace sudoku.data
         protected bool TryLockedCandidates()
         {
             // check Type-1 (Pointing)
-            for (var box = 0; box < mPuzzle.Size; ++box) {
-                for (var r = 0; r < mPuzzle.RowCnt; ++r) {
-                    var intersect_set = mBoxMasks[box].Intersect(mRowMasks[r]);
+            for (var box = 0; box < m_Puzzle.Size; ++box) {
+                for (var r = 0; r < m_Puzzle.RowCnt; ++r) {
+                    var intersect_set = m_BoxMasks[box].Intersect(m_RowMasks[r]);
                     // 判断当前宫和当前行是否有交集
                     if (intersect_set.IsEmpty) {
                         continue;
                     }
 
-                    for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                        var grid_flag = mDigitInfos[digit - 1].grid;
+                    for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                        var grid_flag = m_DigitInfos[digit - 1].grid;
 
                         // 判断当前数字是否已经没有候选数了
                         if (grid_flag.IsEmpty) {
                             continue;
                         }
 
-                        var box_flag = grid_flag.Intersect(mBoxMasks[box]);
+                        var box_flag = grid_flag.Intersect(m_BoxMasks[box]);
                         if (box_flag.IsEmpty) {
                             continue;
                         }
@@ -922,7 +923,7 @@ namespace sudoku.data
                         if (diff.IsEmpty) {
                             // 当前数字，在当前宫中只存在于当前行内
                             // 则可以把当前行内其他格子对当前数字的候选数删掉
-                            var eliminated = mRowMasks[r] - intersect_set;
+                            var eliminated = m_RowMasks[r] - intersect_set;
                             if (EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
@@ -930,19 +931,19 @@ namespace sudoku.data
                     }
                 }
 
-                for (var c = 0; c < mPuzzle.ColCnt; ++c) {
-                    var intersect_set = mBoxMasks[box].Intersect(mColMasks[c]);
+                for (var c = 0; c < m_Puzzle.ColCnt; ++c) {
+                    var intersect_set = m_BoxMasks[box].Intersect(m_ColMasks[c]);
                     if (intersect_set.IsEmpty) {
                         continue;
                     }
 
-                    for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                        var grid_flag = mDigitInfos[digit - 1].grid;
+                    for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                        var grid_flag = m_DigitInfos[digit - 1].grid;
                         if (grid_flag.IsEmpty) {
                             continue;
                         }
 
-                        var box_flag = grid_flag.Intersect(mBoxMasks[box]);
+                        var box_flag = grid_flag.Intersect(m_BoxMasks[box]);
                         if (box_flag.IsEmpty) {
                             continue;
                         }
@@ -951,7 +952,7 @@ namespace sudoku.data
                         if (diff.IsEmpty) {
                             // 当前数字，在当前宫中只存在于当前列内
                             // 则可以把当前列内其他格子对当前数字的候选数删掉
-                            var eliminated = mColMasks[c] - intersect_set;
+                            var eliminated = m_ColMasks[c] - intersect_set;
                             if (EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
@@ -961,20 +962,20 @@ namespace sudoku.data
             }
 
             // Type 2 (Claiming or Box-Line Reduction)
-            for (var r = 0; r < mPuzzle.RowCnt; ++r) {
-                for (var box = 0; box < mPuzzle.Size; ++box) {
-                    var intersect_set = mRowMasks[r].Intersect(mBoxMasks[box]);
+            for (var r = 0; r < m_Puzzle.RowCnt; ++r) {
+                for (var box = 0; box < m_Puzzle.Size; ++box) {
+                    var intersect_set = m_RowMasks[r].Intersect(m_BoxMasks[box]);
                     if (intersect_set.IsEmpty) {
                         continue;
                     }
 
-                    for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                        var grid_flag = mDigitInfos[digit - 1].grid;
+                    for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                        var grid_flag = m_DigitInfos[digit - 1].grid;
                         if (grid_flag.IsEmpty) {
                             continue;
                         }
 
-                        var row_flag = grid_flag.Intersect(mRowMasks[r]);
+                        var row_flag = grid_flag.Intersect(m_RowMasks[r]);
                         if (row_flag.IsEmpty) {
                             continue;
                         }
@@ -983,7 +984,7 @@ namespace sudoku.data
                         if (diff.IsEmpty) {
                             // 当前数字，在当前行中只存在于当前宫内
                             // 则可以把当前宫内其他格子对当前数字的候选数删掉
-                            var eliminated = mBoxMasks[box] - intersect_set;
+                            var eliminated = m_BoxMasks[box] - intersect_set;
                             if (EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
@@ -992,20 +993,20 @@ namespace sudoku.data
                 }
             }
 
-            for (var c = 0; c < mPuzzle.ColCnt; ++c) {
-                for (var box = 0; box < mPuzzle.Size; ++box) {
-                    var intersect_set = mColMasks[c].Intersect(mBoxMasks[box]);
+            for (var c = 0; c < m_Puzzle.ColCnt; ++c) {
+                for (var box = 0; box < m_Puzzle.Size; ++box) {
+                    var intersect_set = m_ColMasks[c].Intersect(m_BoxMasks[box]);
                     if (intersect_set.IsEmpty) {
                         continue;
                     }
 
-                    for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                        var grid_flag = mDigitInfos[digit - 1].grid;
+                    for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                        var grid_flag = m_DigitInfos[digit - 1].grid;
                         if (grid_flag.IsEmpty) {
                             continue;
                         }
 
-                        var col_flag = grid_flag.Intersect(mColMasks[c]);
+                        var col_flag = grid_flag.Intersect(m_ColMasks[c]);
                         if (col_flag.IsEmpty) {
                             continue;
                         }
@@ -1014,7 +1015,7 @@ namespace sudoku.data
                         if (diff.IsEmpty) {
                             // 当前数字，在当前列中只存在于当前宫内
                             // 则可以把当前宫内其他格子对当前数字的候选数删掉
-                            var eliminated = mBoxMasks[box] - intersect_set;
+                            var eliminated = m_BoxMasks[box] - intersect_set;
                             if (EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
@@ -1030,8 +1031,8 @@ namespace sudoku.data
         #region x-wing
         protected bool TryXWing()
         {
-            for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                var digit_info = mDigitInfos[digit - 1];
+            for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                var digit_info = m_DigitInfos[digit - 1];
                 if (digit_info.grid.IsEmpty) {
                     continue;
                 }
@@ -1048,14 +1049,14 @@ namespace sudoku.data
                         if (r1_set == r2_set) {
                             // find
                             // 计算组成x-wing的4个格子，记录在intersect
-                            var r1_intersect = digit_info.grid.Intersect(mRowMasks[r1]);
-                            var r2_intersect = digit_info.grid.Intersect(mRowMasks[r2]);
+                            var r1_intersect = digit_info.grid.Intersect(m_RowMasks[r1]);
+                            var r2_intersect = digit_info.grid.Intersect(m_RowMasks[r2]);
                             var intersect = r1_intersect.Union(r2_intersect);
 
                             // 计算要剔除的2列
                             var eliminated = new BitSet128();
-                            foreach (var c in BitSet32.AllBits(r1_set, mPuzzle.Size)) {
-                                eliminated = eliminated.Union(mColMasks[c]);
+                            foreach (var c in BitSet32.AllBits(r1_set, m_Puzzle.Size)) {
+                                eliminated = eliminated.Union(m_ColMasks[c]);
                             }
 
                             // 从2列中去掉intersect，就得出了最终要剔除的格子
@@ -1079,14 +1080,14 @@ namespace sudoku.data
                         if (c1_set == c2_set) {
                             // find
                             // 计算组成x-wing的4个格子，记录在intersect
-                            var c1_intersect = digit_info.grid.Intersect(mColMasks[c1]);
-                            var c2_intersect = digit_info.grid.Intersect(mColMasks[c2]);
+                            var c1_intersect = digit_info.grid.Intersect(m_ColMasks[c1]);
+                            var c2_intersect = digit_info.grid.Intersect(m_ColMasks[c2]);
                             var intersect = c1_intersect.Union(c2_intersect);
 
                             // 计算要剔除的2行
                             var eliminated = new BitSet128();
-                            foreach (var r in BitSet32.AllBits(c1_set, mPuzzle.Size)) {
-                                eliminated = eliminated.Union(mRowMasks[r]);
+                            foreach (var r in BitSet32.AllBits(c1_set, m_Puzzle.Size)) {
+                                eliminated = eliminated.Union(m_RowMasks[r]);
                             }
 
                             // 从2列中去掉intersect，就得出了最终要剔除的格子
@@ -1119,8 +1120,8 @@ namespace sudoku.data
         /// <returns></returns>
         protected bool TrySwordfish()
         {
-            for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                var digit_info = mDigitInfos[digit - 1];
+            for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                var digit_info = m_DigitInfos[digit - 1];
                 if (digit_info.grid.IsEmpty) {
                     continue;
                 }
@@ -1168,15 +1169,15 @@ namespace sudoku.data
                             if (r1_r2_r3_set.BitCount == 3) {
                                 // find
                                 // 计算组成swordfish的6-9个格子，记录在intersect
-                                var r1_intersect = digit_info.grid.Intersect(mRowMasks[r1]);
-                                var r2_intersect = digit_info.grid.Intersect(mRowMasks[r2]);
-                                var r3_intersect = digit_info.grid.Intersect(mRowMasks[r3]);
+                                var r1_intersect = digit_info.grid.Intersect(m_RowMasks[r1]);
+                                var r2_intersect = digit_info.grid.Intersect(m_RowMasks[r2]);
+                                var r3_intersect = digit_info.grid.Intersect(m_RowMasks[r3]);
                                 var intersect = r1_intersect.Union(r2_intersect).Union(r3_intersect);
 
                                 // 计算要剔除的3列
                                 var eliminated = new BitSet128();
-                                foreach (var c in BitSet32.AllBits(r1_r2_r3_set, mPuzzle.Size)) {
-                                    eliminated = eliminated.Union(mColMasks[c]);
+                                foreach (var c in BitSet32.AllBits(r1_r2_r3_set, m_Puzzle.Size)) {
+                                    eliminated = eliminated.Union(m_ColMasks[c]);
                                 }
 
                                 // 从2列中去掉intersect，就得出了最终要剔除的格子
@@ -1232,15 +1233,15 @@ namespace sudoku.data
                             if (c1_c2_c3_set.BitCount == 3) {
                                 // find
                                 // 计算组成swordfish的6-9个格子，记录在intersect
-                                var c1_intersect = digit_info.grid.Intersect(mColMasks[c1]);
-                                var c2_intersect = digit_info.grid.Intersect(mColMasks[c2]);
-                                var c3_intersect = digit_info.grid.Intersect(mColMasks[c3]);
+                                var c1_intersect = digit_info.grid.Intersect(m_ColMasks[c1]);
+                                var c2_intersect = digit_info.grid.Intersect(m_ColMasks[c2]);
+                                var c3_intersect = digit_info.grid.Intersect(m_ColMasks[c3]);
                                 var intersect = c1_intersect.Union(c2_intersect).Union(c3_intersect);
 
                                 // 计算要剔除的3行
                                 var eliminated = new BitSet128();
-                                foreach (var r in BitSet32.AllBits(c1_c2_c3_set, mPuzzle.Size)) {
-                                    eliminated = eliminated.Union(mRowMasks[r]);
+                                foreach (var r in BitSet32.AllBits(c1_c2_c3_set, m_Puzzle.Size)) {
+                                    eliminated = eliminated.Union(m_RowMasks[r]);
                                 }
 
                                 // 从2列中去掉intersect，就得出了最终要剔除的格子
@@ -1276,8 +1277,8 @@ namespace sudoku.data
         /// <returns></returns>
         protected bool TryJellyfish()
         {
-            for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                var digit_info = mDigitInfos[digit - 1];
+            for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                var digit_info = m_DigitInfos[digit - 1];
                 if (digit_info.grid.IsEmpty) {
                     continue;
                 }
@@ -1339,16 +1340,16 @@ namespace sudoku.data
                                 if (r1_r2_r3_r4_set.BitCount == 4) {
                                     // find
                                     // 计算组成jellyfish的8-16个格子，记录在intersect
-                                    var r1_intersect = digit_info.grid.Intersect(mRowMasks[r1]);
-                                    var r2_intersect = digit_info.grid.Intersect(mRowMasks[r2]);
-                                    var r3_intersect = digit_info.grid.Intersect(mRowMasks[r3]);
-                                    var r4_intersect = digit_info.grid.Intersect(mRowMasks[r4]);
+                                    var r1_intersect = digit_info.grid.Intersect(m_RowMasks[r1]);
+                                    var r2_intersect = digit_info.grid.Intersect(m_RowMasks[r2]);
+                                    var r3_intersect = digit_info.grid.Intersect(m_RowMasks[r3]);
+                                    var r4_intersect = digit_info.grid.Intersect(m_RowMasks[r4]);
                                     var intersect = r1_intersect.Union(r2_intersect).Union(r3_intersect).Union(r4_intersect);
 
                                     // 计算要剔除的4列
                                     var eliminated = new BitSet128();
-                                    foreach (var c in BitSet32.AllBits(r1_r2_r3_r4_set, mPuzzle.Size)) {
-                                        eliminated = eliminated.Union(mColMasks[c]);
+                                    foreach (var c in BitSet32.AllBits(r1_r2_r3_r4_set, m_Puzzle.Size)) {
+                                        eliminated = eliminated.Union(m_ColMasks[c]);
                                     }
 
                                     // 从4列中去掉intersect，就得出了最终要剔除的格子
@@ -1418,16 +1419,16 @@ namespace sudoku.data
                                 if (c1_c2_c3_c4_set.BitCount == 4) {
                                     // find
                                     // 计算组成jellyfish的8-16个格子，记录在intersect
-                                    var c1_intersect = digit_info.grid.Intersect(mColMasks[c1]);
-                                    var c2_intersect = digit_info.grid.Intersect(mColMasks[c2]);
-                                    var c3_intersect = digit_info.grid.Intersect(mColMasks[c3]);
-                                    var c4_intersect = digit_info.grid.Intersect(mColMasks[c4]);
+                                    var c1_intersect = digit_info.grid.Intersect(m_ColMasks[c1]);
+                                    var c2_intersect = digit_info.grid.Intersect(m_ColMasks[c2]);
+                                    var c3_intersect = digit_info.grid.Intersect(m_ColMasks[c3]);
+                                    var c4_intersect = digit_info.grid.Intersect(m_ColMasks[c4]);
                                     var intersect = c1_intersect.Union(c2_intersect).Union(c3_intersect).Union(c4_intersect);
 
                                     // 计算要剔除的4行
                                     var eliminated = new BitSet128();
-                                    foreach (var r in BitSet32.AllBits(c1_c2_c3_c4_set, mPuzzle.Size)) {
-                                        eliminated = eliminated.Union(mRowMasks[r]);
+                                    foreach (var r in BitSet32.AllBits(c1_c2_c3_c4_set, m_Puzzle.Size)) {
+                                        eliminated = eliminated.Union(m_RowMasks[r]);
                                     }
 
                                     // 从4行中去掉intersect，就得出了最终要剔除的格子
@@ -1450,8 +1451,8 @@ namespace sudoku.data
         #region skyscraper
         protected bool TrySkyscraper()
         {
-            for (var digit = 1; digit <= mPuzzle.Size; ++digit) {
-                var digit_info = mDigitInfos[digit - 1];
+            for (var digit = 1; digit <= m_Puzzle.Size; ++digit) {
+                var digit_info = m_DigitInfos[digit - 1];
                 if (digit_info.grid.IsEmpty) {
                     continue;
                 }
@@ -1476,24 +1477,24 @@ namespace sudoku.data
                             var interset_set = r1_set.Intersect(r2_set);
 
                             int intersect_col = 0;
-                            foreach (var c in BitSet32.AllBits(interset_set, mPuzzle.Size)) {
+                            foreach (var c in BitSet32.AllBits(interset_set, m_Puzzle.Size)) {
                                 intersect_col = c;
                             }
 
                             int c1 = 0, c2 = 0;
-                            foreach (var c in BitSet32.AllBits(r1_set, mPuzzle.Size)) {
+                            foreach (var c in BitSet32.AllBits(r1_set, m_Puzzle.Size)) {
                                 if (c != intersect_col) {
                                     c1 = c;
                                 }
                             }
-                            foreach (var c in BitSet32.AllBits(r2_set, mPuzzle.Size)) {
+                            foreach (var c in BitSet32.AllBits(r2_set, m_Puzzle.Size)) {
                                 if (c != intersect_col) {
                                     c2 = c;
                                 }
                             }
 
-                            var cell1_intersect = mRowMasks[r1].Union(mColMasks[c1]).Union(mBoxMasks[mPuzzle.RowCol2Box(r1, c1)]);
-                            var cell2_intersect = mRowMasks[r2].Union(mColMasks[c2]).Union(mBoxMasks[mPuzzle.RowCol2Box(r2, c2)]);
+                            var cell1_intersect = m_RowMasks[r1].Union(m_ColMasks[c1]).Union(m_BoxMasks[m_Puzzle.RowCol2Box(r1, c1)]);
+                            var cell2_intersect = m_RowMasks[r2].Union(m_ColMasks[c2]).Union(m_BoxMasks[m_Puzzle.RowCol2Box(r2, c2)]);
 
                             var eliminated = digit_info.grid.Intersect(cell1_intersect).Intersect(cell2_intersect);
                             if (eliminated.IsEmpty) {
@@ -1501,8 +1502,8 @@ namespace sudoku.data
                             }
 
                             // 计算组成skyscraper的4个格子，记录在intersect
-                            var r1_intersect = digit_info.grid.Intersect(mRowMasks[r1]);
-                            var r2_intersect = digit_info.grid.Intersect(mRowMasks[r2]);
+                            var r1_intersect = digit_info.grid.Intersect(m_RowMasks[r1]);
+                            var r2_intersect = digit_info.grid.Intersect(m_RowMasks[r2]);
                             var intersect = r1_intersect.Union(r2_intersect);
 
                             // 从2列中去掉intersect，就得出了最终要剔除的格子
@@ -1534,24 +1535,24 @@ namespace sudoku.data
                             var interset_set = c1_set.Intersect(c2_set);
 
                             int intersect_row = 0;
-                            foreach (var r in BitSet32.AllBits(interset_set, mPuzzle.Size)) {
+                            foreach (var r in BitSet32.AllBits(interset_set, m_Puzzle.Size)) {
                                 intersect_row = r;
                             }
 
                             int r1 = 0, r2 = 0;
-                            foreach (var r in BitSet32.AllBits(c1_set, mPuzzle.Size)) {
+                            foreach (var r in BitSet32.AllBits(c1_set, m_Puzzle.Size)) {
                                 if (r != intersect_row) {
                                     r1 = r;
                                 }
                             }
-                            foreach (var r in BitSet32.AllBits(c2_set, mPuzzle.Size)) {
+                            foreach (var r in BitSet32.AllBits(c2_set, m_Puzzle.Size)) {
                                 if (r != intersect_row) {
                                     r2 = r;
                                 }
                             }
 
-                            var cell1_intersect = mRowMasks[r1].Union(mColMasks[c1]).Union(mBoxMasks[mPuzzle.RowCol2Box(r1, c1)]);
-                            var cell2_intersect = mRowMasks[r2].Union(mColMasks[c2]).Union(mBoxMasks[mPuzzle.RowCol2Box(r2, c2)]);
+                            var cell1_intersect = m_RowMasks[r1].Union(m_ColMasks[c1]).Union(m_BoxMasks[m_Puzzle.RowCol2Box(r1, c1)]);
+                            var cell2_intersect = m_RowMasks[r2].Union(m_ColMasks[c2]).Union(m_BoxMasks[m_Puzzle.RowCol2Box(r2, c2)]);
 
                             var eliminated = digit_info.grid.Intersect(cell1_intersect).Intersect(cell2_intersect);
                             if (eliminated.IsEmpty) {
@@ -1559,8 +1560,8 @@ namespace sudoku.data
                             }
 
                             // 计算组成skyscraper的4个格子，记录在intersect
-                            var c1_intersect = digit_info.grid.Intersect(mColMasks[c1]);
-                            var c2_intersect = digit_info.grid.Intersect(mColMasks[c2]);
+                            var c1_intersect = digit_info.grid.Intersect(m_ColMasks[c1]);
+                            var c2_intersect = digit_info.grid.Intersect(m_ColMasks[c2]);
                             var intersect = c1_intersect.Union(c2_intersect);
 
                             // 从2列中去掉intersect，就得出了最终要剔除的格子

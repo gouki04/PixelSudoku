@@ -1,41 +1,38 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace sudoku.data.solve
 {
     public class Solver
     {
-        protected Context mContext;
-        protected List<Technique> mTechniques = new List<Technique>();
+        protected Context m_Context;
+        protected List<Technique> m_Techniques = new List<Technique>();
 
         public Solver(Puzzle puzzle)
         {
-            mContext = new Context(puzzle);
-            mTechniques.Add(new Single());
-            mTechniques.Add(new Subsetcs());
-            mTechniques.Add(new Intersection());
-            mTechniques.Add(new SingleDigitPattern());
-            mTechniques.Add(new Wing());
-            mTechniques.Add(new Fish());
-            mTechniques.Add(new Color());
+            m_Context = new Context(puzzle);
+            m_Techniques.Add(new Single());
+            m_Techniques.Add(new Subsetcs());
+            m_Techniques.Add(new Intersection());
+            m_Techniques.Add(new SingleDigitPattern());
+            m_Techniques.Add(new Wing());
+            m_Techniques.Add(new Fish());
+            m_Techniques.Add(new Color());
         }
 
         public IEnumerator Run()
         {
-            mContext.Puzzle.FillAllCandidates();
+            m_Context.Puzzle.FillAllCandidates();
 
-            while (!mContext.Puzzle.IsFinished) {
+            while (!m_Context.Puzzle.IsFinished) {
                 yield return new WaitForSeconds(0.2f);
 
-                mContext.Prepare();
+                m_Context.Prepare();
 
                 var succeed = false;
-                foreach (var tech in mTechniques) {
-                    if (tech.TrySolve(mContext)) {
+                foreach (var tech in m_Techniques) {
+                    if (tech.TrySolve(m_Context)) {
                         succeed = true;
                         break;
                     }
