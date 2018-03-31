@@ -37,6 +37,8 @@ namespace sudoku.data.solve
         /// </summary>
         public BitSet128[] BoxMasks;
 
+        public BitSet128[] HouseMasks;
+
         /// <summary>
         /// 任意一个house完成的mask
         /// </summary>
@@ -130,6 +132,20 @@ namespace sudoku.data.solve
 
                     FinishedGridMask.SetBit(idx);
                 }
+            }
+
+            HouseMasks = new BitSet128[RowMasks.Length + ColMasks.Length + BoxMasks.Length];
+            var house_idx = 0;
+            for (var i = 0; i < RowMasks.Length; ++i) {
+                HouseMasks[house_idx++] = RowMasks[i];
+            }
+
+            for (var i = 0; i < ColMasks.Length; ++i) {
+                HouseMasks[house_idx++] = ColMasks[i];
+            }
+
+            for (var i = 0; i < BoxMasks.Length; ++i) {
+                HouseMasks[house_idx++] = BoxMasks[i];
             }
 
             for (var digit = 1; digit <= Puzzle.Size; ++digit) {

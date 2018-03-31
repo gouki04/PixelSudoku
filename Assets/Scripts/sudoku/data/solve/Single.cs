@@ -22,6 +22,8 @@ namespace sudoku.data.solve
         protected bool TryNakedSingle(Context context)
         {
             // naked single
+            // 一个格子只剩一个候选数的情况
+            // @see http://sudopedia.enjoysudoku.com/Naked_Single.html
 
             // 检查是否存在一个格子内只有一个可选数字的情况
             for (var r = 0; r < context.Puzzle.RowCnt; ++r) {
@@ -41,32 +43,11 @@ namespace sudoku.data.solve
             return false;
         }
 
-        protected bool HiddenSingle_CheckIntersect(Context context, int digit, BitSet128 digit_grid, BitSet128[] sub_sets)
-        {
-            for (var i = 0; i < sub_sets.Length; ++i) {
-                var intersect_set = sub_sets[i].Intersect(digit_grid);
-                if (intersect_set.IsEmpty) {
-                    continue;
-                }
-
-                if (intersect_set.BitCount == 1) {
-                    // find
-                    foreach (var idx in BitSet128.AllBits(intersect_set)) {
-                        int row, col;
-                        context.Index2RowCol(idx, out row, out col);
-
-                        context.Puzzle.TrySetCellAt(row, col, digit);
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         protected bool TryHiddenSingle(Context context)
         {
             // hidden single
+            // 在某一行、列、宫中，某个数字只能填在一个格子的情况
+            // @see http://sudopedia.enjoysudoku.com/Hidden_Single.html
 
             for (var digit = 1; digit <= context.Puzzle.Size; ++digit) {
                 var digit_grid = context.DigitInfos[digit - 1].grid;
@@ -74,19 +55,23 @@ namespace sudoku.data.solve
                     continue;
                 }
 
-                // 检查是否存在某一行，其中有某一个数字只能填在一个格子的情况
-                if (HiddenSingle_CheckIntersect(context, digit, digit_grid, context.RowMasks)) {
-                    return true;
-                }
+                // 检查是否存在某一house，其中有某一个数字只能填在一个格子的情况
+                for (var i = 0; i < context.HouseMasks.Length; ++i) {
+                    var intersect_set = context.HouseMasks[i].Intersect(digit_grid);
+                    if (intersect_set.IsEmpty) {
+                        continue;
+                    }
 
-                // 检查是否存在某一列，其中有某一个数字只能填在一个格子的情况
-                if (HiddenSingle_CheckIntersect(context, digit, digit_grid, context.ColMasks)) {
-                    return true;
-                }
+                    if (intersect_set.BitCount == 1) {
+                        // find
+                        foreach (var idx in BitSet128.AllBits(intersect_set)) {
+                            int row, col;
+                            context.Index2RowCol(idx, out row, out col);
 
-                // 检查是否存在某一宫，其中有某一个数字只能填在一个格子的情况
-                if (HiddenSingle_CheckIntersect(context, digit, digit_grid, context.BoxMasks)) {
-                    return true;
+                            context.Puzzle.TrySetCellAt(row, col, digit);
+                            return true;
+                        }
+                    }
                 }
             }
 
