@@ -40,16 +40,16 @@ namespace sudoku.data.solve
         }
 
         #region hidden pairs
-        protected bool HiddenPairs_CheckIntersect(Context context, BitSet128[] sub_sets)
+        protected bool TryHiddenPairs(Context context)
         {
-            for (var i = 0; i < sub_sets.Length; ++i) {
+            for (var i = 0; i < context.HouseMasks.Length; ++i) {
                 for (var digit = 1; digit <= context.Puzzle.Size - 1; ++digit) {
                     var digit_grid = context.DigitInfos[digit - 1].grid;
                     if (digit_grid.IsEmpty) {
                         continue;
                     }
 
-                    var intersect_set = sub_sets[i].Intersect(digit_grid);
+                    var intersect_set = context.HouseMasks[i].Intersect(digit_grid);
                     if (intersect_set.IsEmpty || intersect_set.BitCount != 2) {
                         continue;
                     }
@@ -60,7 +60,7 @@ namespace sudoku.data.solve
                             continue;
                         }
 
-                        var intersect_set2 = sub_sets[i].Intersect(digit2_grid);
+                        var intersect_set2 = context.HouseMasks[i].Intersect(digit2_grid);
                         if (intersect_set == intersect_set2) {
                             // find pair
                             // check if pair is hidden
@@ -79,36 +79,19 @@ namespace sudoku.data.solve
 
             return false;
         }
-
-        protected bool TryHiddenPairs(Context context)
-        {
-            if (HiddenPairs_CheckIntersect(context, context.RowMasks)) {
-                return true;
-            }
-
-            if (HiddenPairs_CheckIntersect(context, context.ColMasks)) {
-                return true;
-            }
-
-            if (HiddenPairs_CheckIntersect(context, context.BoxMasks)) {
-                return true;
-            }
-
-            return false;
-        }
         #endregion
 
         #region hidden triple
-        protected bool HiddenTriple_CheckIntersect(Context context, BitSet128[] sub_sets)
+        protected bool TryHiddenTripe(Context context)
         {
-            for (var i = 0; i < sub_sets.Length; ++i) {
+            for (var i = 0; i < context.HouseMasks.Length; ++i) {
                 for (var d1 = 1; d1 <= context.Puzzle.Size - 2; ++d1) { // d for digit
                     var d1_grid = context.DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
 
-                    var d1_set = sub_sets[i].Intersect(d1_grid);
+                    var d1_set = context.HouseMasks[i].Intersect(d1_grid);
                     if (d1_set.IsEmpty) {
                         continue;
                     }
@@ -124,7 +107,7 @@ namespace sudoku.data.solve
                             continue;
                         }
 
-                        var d2_set = sub_sets[i].Intersect(d2_grid);
+                        var d2_set = context.HouseMasks[i].Intersect(d2_grid);
                         if (d2_set.IsEmpty) {
                             continue;
                         }
@@ -145,7 +128,7 @@ namespace sudoku.data.solve
                                 continue;
                             }
 
-                            var d3_set = sub_sets[i].Intersect(d3_grid);
+                            var d3_set = context.HouseMasks[i].Intersect(d3_grid);
                             if (d3_set.IsEmpty) {
                                 continue;
                             }
@@ -176,36 +159,19 @@ namespace sudoku.data.solve
 
             return false;
         }
-
-        protected bool TryHiddenTripe(Context context)
-        {
-            if (HiddenTriple_CheckIntersect(context, context.RowMasks)) {
-                return true;
-            }
-
-            if (HiddenTriple_CheckIntersect(context, context.ColMasks)) {
-                return true;
-            }
-
-            if (HiddenTriple_CheckIntersect(context, context.BoxMasks)) {
-                return true;
-            }
-
-            return false;
-        }
         #endregion
 
         #region hidden quad
-        protected bool HiddenQuad_CheckIntersect(Context context, BitSet128[] sub_sets)
+        protected bool TryHiddenQuad(Context context)
         {
-            for (var i = 0; i < sub_sets.Length; ++i) {
+            for (var i = 0; i < context.HouseMasks.Length; ++i) {
                 for (var d1 = 1; d1 <= context.Puzzle.Size - 3; ++d1) { // d for digit
                     var d1_grid = context.DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
 
-                    var d1_set = sub_sets[i].Intersect(d1_grid);
+                    var d1_set = context.HouseMasks[i].Intersect(d1_grid);
                     if (d1_set.IsEmpty) {
                         continue;
                     }
@@ -221,7 +187,7 @@ namespace sudoku.data.solve
                             continue;
                         }
 
-                        var d2_set = sub_sets[i].Intersect(d2_grid);
+                        var d2_set = context.HouseMasks[i].Intersect(d2_grid);
                         if (d2_set.IsEmpty) {
                             continue;
                         }
@@ -243,7 +209,7 @@ namespace sudoku.data.solve
                                 continue;
                             }
 
-                            var d3_set = sub_sets[i].Intersect(d3_grid);
+                            var d3_set = context.HouseMasks[i].Intersect(d3_grid);
                             if (d3_set.IsEmpty) {
                                 continue;
                             }
@@ -264,7 +230,7 @@ namespace sudoku.data.solve
                                     continue;
                                 }
 
-                                var d4_set = sub_sets[i].Intersect(d4_grid);
+                                var d4_set = context.HouseMasks[i].Intersect(d4_grid);
                                 if (d4_set.IsEmpty) {
                                     continue;
                                 }
@@ -297,36 +263,19 @@ namespace sudoku.data.solve
 
             return false;
         }
-
-        protected bool TryHiddenQuad(Context context)
-        {
-            if (HiddenQuad_CheckIntersect(context, context.RowMasks)) {
-                return true;
-            }
-
-            if (HiddenQuad_CheckIntersect(context, context.ColMasks)) {
-                return true;
-            }
-
-            if (HiddenQuad_CheckIntersect(context, context.BoxMasks)) {
-                return true;
-            }
-
-            return false;
-        }
         #endregion
 
         #region naked pairs
-        protected bool NakedPairs_CheckIntersect(Context context, BitSet128[] sub_sets)
+        protected bool TryNakedPairs(Context context)
         {
-            for (var i = 0; i < sub_sets.Length; ++i) {
+            for (var i = 0; i < context.HouseMasks.Length; ++i) {
                 for (var digit = 1; digit <= context.Puzzle.Size - 1; ++digit) {
                     var digit_grid = context.DigitInfos[digit - 1].grid;
                     if (digit_grid.IsEmpty) {
                         continue;
                     }
 
-                    var intersect_set = sub_sets[i].Intersect(digit_grid);
+                    var intersect_set = context.HouseMasks[i].Intersect(digit_grid);
                     if (intersect_set.IsEmpty || intersect_set.BitCount != 2) {
                         continue;
                     }
@@ -337,7 +286,7 @@ namespace sudoku.data.solve
                             continue;
                         }
 
-                        var intersect_set2 = sub_sets[i].Intersect(digit2_grid);
+                        var intersect_set2 = context.HouseMasks[i].Intersect(digit2_grid);
                         if (intersect_set == intersect_set2) {
                             // find pair
                             // check if pair is naked
@@ -358,7 +307,7 @@ namespace sudoku.data.solve
                             }
 
                             if (is_naked_pair) {
-                                var eliminated = sub_sets[i] - intersect_set;
+                                var eliminated = context.HouseMasks[i] - intersect_set;
                                 if (context.EliminateCandidates(eliminated, pair_set)) {
                                     return true;
                                 }
@@ -370,36 +319,19 @@ namespace sudoku.data.solve
 
             return false;
         }
-
-        protected bool TryNakedPairs(Context context)
-        {
-            if (NakedPairs_CheckIntersect(context, context.RowMasks)) {
-                return true;
-            }
-
-            if (NakedPairs_CheckIntersect(context, context.ColMasks)) {
-                return true;
-            }
-
-            if (NakedPairs_CheckIntersect(context, context.BoxMasks)) {
-                return true;
-            }
-
-            return false;
-        }
         #endregion
 
         #region naked triple
-        protected bool NakedTriple_CheckIntersect(Context context, BitSet128[] sub_sets)
+        protected bool TryNakedTriple(Context context)
         {
-            for (var i = 0; i < sub_sets.Length; ++i) {
+            for (var i = 0; i < context.HouseMasks.Length; ++i) {
                 for (var d1 = 1; d1 <= context.Puzzle.Size - 2; ++d1) { // d for digit
                     var d1_grid = context.DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
 
-                    var d1_set = sub_sets[i].Intersect(d1_grid);
+                    var d1_set = context.HouseMasks[i].Intersect(d1_grid);
                     if (d1_set.IsEmpty) {
                         continue;
                     }
@@ -415,7 +347,7 @@ namespace sudoku.data.solve
                             continue;
                         }
 
-                        var d2_set = sub_sets[i].Intersect(d2_grid);
+                        var d2_set = context.HouseMasks[i].Intersect(d2_grid);
                         if (d2_set.IsEmpty) {
                             continue;
                         }
@@ -436,7 +368,7 @@ namespace sudoku.data.solve
                                 continue;
                             }
 
-                            var d3_set = sub_sets[i].Intersect(d3_grid);
+                            var d3_set = context.HouseMasks[i].Intersect(d3_grid);
                             if (d3_set.IsEmpty) {
                                 continue;
                             }
@@ -454,7 +386,7 @@ namespace sudoku.data.solve
                                 triple_set.SetBit(d2);
                                 triple_set.SetBit(d3);
 
-                                var eliminated = sub_sets[i] - d1_d2_d3_set;
+                                var eliminated = context.HouseMasks[i] - d1_d2_d3_set;
                                 if (context.EliminateCandidates(eliminated, triple_set)) {
                                     return true;
                                 }
@@ -466,36 +398,19 @@ namespace sudoku.data.solve
 
             return false;
         }
-
-        protected bool TryNakedTriple(Context context)
-        {
-            if (NakedTriple_CheckIntersect(context, context.RowMasks)) {
-                return true;
-            }
-
-            if (NakedTriple_CheckIntersect(context, context.ColMasks)) {
-                return true;
-            }
-
-            if (NakedTriple_CheckIntersect(context, context.BoxMasks)) {
-                return true;
-            }
-
-            return false;
-        }
         #endregion
 
         #region naked quad
-        protected bool NakedQuad_CheckIntersect(Context context, BitSet128[] sub_sets)
+        protected bool TryNakedQuad(Context context)
         {
-            for (var i = 0; i < sub_sets.Length; ++i) {
+            for (var i = 0; i < context.HouseMasks.Length; ++i) {
                 for (var d1 = 1; d1 <= context.Puzzle.Size - 3; ++d1) { // d for digit
                     var d1_grid = context.DigitInfos[d1 - 1].grid;
                     if (d1_grid.IsEmpty) {
                         continue;
                     }
 
-                    var d1_set = sub_sets[i].Intersect(d1_grid);
+                    var d1_set = context.HouseMasks[i].Intersect(d1_grid);
                     if (d1_set.IsEmpty) {
                         continue;
                     }
@@ -511,7 +426,7 @@ namespace sudoku.data.solve
                             continue;
                         }
 
-                        var d2_set = sub_sets[i].Intersect(d2_grid);
+                        var d2_set = context.HouseMasks[i].Intersect(d2_grid);
                         if (d2_set.IsEmpty) {
                             continue;
                         }
@@ -533,7 +448,7 @@ namespace sudoku.data.solve
                                 continue;
                             }
 
-                            var d3_set = sub_sets[i].Intersect(d3_grid);
+                            var d3_set = context.HouseMasks[i].Intersect(d3_grid);
                             if (d3_set.IsEmpty) {
                                 continue;
                             }
@@ -554,7 +469,7 @@ namespace sudoku.data.solve
                                     continue;
                                 }
 
-                                var d4_set = sub_sets[i].Intersect(d4_grid);
+                                var d4_set = context.HouseMasks[i].Intersect(d4_grid);
                                 if (d4_set.IsEmpty) {
                                     continue;
                                 }
@@ -574,7 +489,7 @@ namespace sudoku.data.solve
                                     quad_set.SetBit(d3);
                                     quad_set.SetBit(d4);
 
-                                    var eliminated = sub_sets[i] - d1_d2_d3_d4_set;
+                                    var eliminated = context.HouseMasks[i] - d1_d2_d3_d4_set;
                                     if (context.EliminateCandidates(eliminated, quad_set)) {
                                         return true;
                                     }
@@ -583,23 +498,6 @@ namespace sudoku.data.solve
                         }
                     }
                 }
-            }
-
-            return false;
-        }
-
-        protected bool TryNakedQuad(Context context)
-        {
-            if (NakedQuad_CheckIntersect(context, context.RowMasks)) {
-                return true;
-            }
-
-            if (NakedQuad_CheckIntersect(context, context.ColMasks)) {
-                return true;
-            }
-
-            if (NakedQuad_CheckIntersect(context, context.BoxMasks)) {
-                return true;
             }
 
             return false;
