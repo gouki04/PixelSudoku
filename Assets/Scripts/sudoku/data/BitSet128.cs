@@ -13,6 +13,14 @@ namespace sudoku.data
             m_HighBit = high_bit;
         }
 
+        public BitSet128(int idx)
+        {
+            m_LowBit = 0L;
+            m_HighBit = 0L;
+
+            SetBit(idx);
+        }
+
         public void SetBit(int idx)
         {
             if (idx >= 64) {

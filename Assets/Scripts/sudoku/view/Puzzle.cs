@@ -114,11 +114,13 @@ namespace sudoku.view
                 }
 
                 if (Input.GetKeyUp(KeyCode.A)) {
-                    //var solver = new data.PuzzleAutoSolver(PuzzleData);
-                    //StartCoroutine(solver.Run());
-
                     var solver = new data.solve.Solver(PuzzleData);
                     StartCoroutine(solver.Run());
+                }
+
+                if (Input.GetKeyUp(KeyCode.S)) {
+                    var solver = new data.solve.Solver(PuzzleData);
+                    StartCoroutine(solver.Step(1));
                 }
 
                 foreach (var kvp in m_KeyCode2NumberDict) {

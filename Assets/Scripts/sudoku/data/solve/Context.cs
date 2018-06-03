@@ -20,27 +20,30 @@ namespace sudoku.data.solve
 
         /// <summary>
         /// 所有行的mask
-        /// 下标从o开始
+        /// 下标从0开始
         /// </summary>
         public BitSet128[] RowMasks;
 
         /// <summary>
         /// 所有列的mask
-        /// 下标从o开始
+        /// 下标从0开始
         /// </summary>
         public BitSet128[] ColMasks;
 
         /// <summary>
         /// 所有宫的mask
-        /// 下标从o开始
+        /// 下标从0开始
         /// 下标从左上往右下增加
         /// </summary>
         public BitSet128[] BoxMasks;
 
+        /// <summary>
+        /// RowMasks + ColMasks + BoxMasks
+        /// </summary>
         public BitSet128[] HouseMasks;
 
         /// <summary>
-        /// 任意一个house完成的mask
+        /// 数字1-9完成的mask
         /// </summary>
         public BitSet32 FinishedDigitMask;
 
@@ -229,7 +232,7 @@ namespace sudoku.data.solve
         /// 如果出现成功摒除，返回true
         /// </summary>
         /// <param name="eliminated"></param>
-        /// <param name="candidates">和Puzzle里候选数排布一样，第i个数字在i+1位</param>
+        /// <param name="candidates">和Puzzle里候选数排布一样，数字i在i位（由于数独是1-9，所以0位不用）</param>
         /// <returns></returns>
         public bool EliminateCandidates(BitSet128 eliminated, BitSet32 candidates)
         {

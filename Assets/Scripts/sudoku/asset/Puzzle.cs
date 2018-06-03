@@ -29,30 +29,35 @@ namespace sudoku.asset
 
         protected bool InitGivenCells()
         {
-            if (PuzzleString.Length > Size * (Size + 1)) {
+            var puzzle_str = @"196000000000030890030004000900000107000703000204000005000100070085060000000000948";
+            if (puzzle_str.Length > Size * (Size + 1)) {
                 return false;
             }
 
-            foreach (var c in PuzzleString) {
+            //foreach (var c in puzzle_str) {
+            //    if (c == '\n') {
+            //        continue;
+            //    }
+
+            //    var number = c - '0';
+            //    if (number < 0 || number > Size) {
+            //        return false;
+            //    }
+            //}
+
+            mGivenCells = new int[Size, Size];
+
+            var index = 0;
+            foreach (var c in puzzle_str) {
                 if (c == '\n') {
                     continue;
                 }
 
                 var number = c - '0';
                 if (number < 0 || number > Size) {
-                    return false;
-                }
-            }
-
-            mGivenCells = new int[Size, Size];
-
-            var index = 0;
-            foreach (var c in PuzzleString) {
-                if (c == '\n') {
                     continue;
                 }
 
-                var number = c - '0';
                 var row = index / Size;
                 var col = index % Size;
                 mGivenCells[row, col] = number;

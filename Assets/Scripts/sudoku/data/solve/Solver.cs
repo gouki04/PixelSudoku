@@ -19,6 +19,7 @@ namespace sudoku.data.solve
             m_Techniques.Add(new Wing());
             m_Techniques.Add(new Fish());
             m_Techniques.Add(new Color());
+            m_Techniques.Add(new NiceLoop());
         }
 
         public IEnumerator Run()
@@ -39,6 +40,32 @@ namespace sudoku.data.solve
                 }
 
                 if (!succeed) {
+                    break;
+                }
+            }
+        }
+
+        public IEnumerator Step(int step)
+        {
+            while (!m_Context.Puzzle.IsFinished) {
+                yield return new WaitForSeconds(0.2f);
+
+                m_Context.Prepare();
+
+                var succeed = false;
+                foreach (var tech in m_Techniques) {
+                    if (tech.TrySolve(m_Context)) {
+                        succeed = true;
+                        break;
+                    }
+                }
+
+                if (!succeed) {
+                    break;
+                }
+
+                --step;
+                if (step <= 0) {
                     break;
                 }
             }

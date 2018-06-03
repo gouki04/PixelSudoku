@@ -35,4 +35,84 @@ public class Game : MonoBehaviour
     //        }
     //    }
     //}
+
+    /// choose a cell
+    /// loop.link(cell, link_type.head)
+    /// foreach c in cell.candidates do
+    ///     // try strong link
+    ///     foreach cell2 in cell.conjugate_pairs[c] do
+    ///         loop.link(cell2, c, link_type.strong)
+    ///         next(loop)
+    ///     end
+    ///     
+    ///     // try weak link
+    ///     foreach cell2 in cell.related[c] do
+    ///         loop.link(cell2, c, link_type.weak)
+    ///         next(loop)
+    ///     end
+    /// end
+    /// 
+    /// function next(loop)
+    ///     if loop.last == loop.head then
+    ///         print (find loop)
+    ///         return
+    ///     end
+    /// 
+    ///     local cell = loop.last.cell
+    ///     local c = loop.last.candidate
+    ///     
+    ///     // 如果进入的是强链（这个单元格必须是x），那么出去的链可以是：
+    ///     if loop.last.link_type == link_type.strong then
+    ///         // 相同数字的弱链（如果这个单元格是x）
+    ///         foreach cell2 in cell.related[c] do
+    ///             if cell2 == cell then
+    ///                 continue
+    ///             else
+    ///                 loop.link(cell2, c, link_type.weak)
+    ///                 next(loop)
+    ///             end
+    ///         end
+    ///         
+    ///         // 不同数字的强链（如果这个单元格是y） - 再次，你需要找到这个单元格的共轭对
+    ///         foreach c2 in cell.other_candidates do
+    ///             foreach cell2 in cell.conjugate_pairs[c2] do
+    ///                 if cell2 == cell then
+    ///                     continue
+    ///                 else
+    ///                     loop.link(cell2, c2, link_type.strong)
+    ///                     next(loop)
+    ///                 end
+    ///             end
+    ///         end
+    ///     // 如果进入的是弱链（这个单元格不能是x），那么出去的链可以是：
+    ///     else
+    ///         // 相同数字的强链（如果这个单元格不是x） - 你需要找到这个单元格的共轭对
+    ///         foreach cell2 in cell.conjugate_pairs[c] do
+    ///             if cell2 == loop.last.prev.cell then
+    ///                 continue
+    ///             else
+    ///                 loop.link(cell2, c, link_type.strong)
+    ///                 next(loop)
+    ///             end
+    ///         end
+    ///         
+    ///         // 不同数字的弱链（如果这个单元格是y） - 单元格必须是bivalue
+    ///         if cell.is_bivalue then
+    ///             foreach c2 in cell.candidates do
+    ///                 if c2 == c then
+    ///                     continue
+    ///                 else
+    ///                     foreach cell2 in cell.related[c2] do
+    ///                         if cell2 == loop.last.prev.cell then
+    ///                             continue
+    ///                         else
+    ///                             loop.link(cell2, c2, link_type.weak)
+    ///                             next(loop)
+    ///                         end
+    ///                     end
+    ///                 end
+    ///             end
+    ///         end
+    ///     end
+    /// end
 }
