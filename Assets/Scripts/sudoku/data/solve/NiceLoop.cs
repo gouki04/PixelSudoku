@@ -330,7 +330,7 @@ namespace sudoku.data.solve
             public BitSet128 FilledMask;
 
             protected bool m_Break = false;
-            protected int m_BreakTime = 100000;
+            protected int m_BreakTime = int.MaxValue;
 
             public void SetHead(Cell cell)
             {
@@ -344,6 +344,7 @@ namespace sudoku.data.solve
                 Head = node;
                 Tail = node;
 
+                FilledMask.Reset();
                 FilledMask.SetBit(cell.CellIdx);
             }
 
@@ -462,9 +463,9 @@ namespace sudoku.data.solve
 
             public bool Link(Cell cell, ELinkType link_type)
             {
-                if (m_BreakTime < 0) {
-                    return false;
-                }
+                //if (m_BreakTime < 0) {
+                //    return false;
+                //}
 
                 if (Tail.Cell.IsAtSamePosition(cell)) {
                     return false;
