@@ -704,25 +704,25 @@ namespace sudoku.data
         {
             var ret = new Puzzle
             {
-                m_GivenCells = ClonePuzzle(this.m_GivenCells),
-                m_Cells = ClonePuzzle(this.m_Cells),
+                m_GivenCells = ClonePuzzle(m_GivenCells),
+                m_Cells = ClonePuzzle(m_Cells),
 
-                m_TempCells = new int[this.RowCnt, this.ColCnt],
-                m_FinishedMask = this.m_FinishedMask,
+                m_TempCells = new int[RowCnt, ColCnt],
+                m_FinishedMask = m_FinishedMask,
 
-                m_HasError = this.m_HasError,
+                m_HasError = m_HasError,
 
-                OnCellChanged = this.OnCellChanged,
-                OnError = this.OnError,
-                OnFinished = this.OnFinished,
-                OnCandidateChanged = this.OnCandidateChanged,
+                OnCellChanged = OnCellChanged,
+                OnError = OnError,
+                OnFinished = OnFinished,
+                OnCandidateChanged = OnCandidateChanged,
 
-                m_Candidates = new BitSet32[this.RowCnt, this.ColCnt]
+                m_Candidates = new BitSet32[RowCnt, ColCnt]
             };
 
-            for (var r = 0; r < this.RowCnt; ++r) {
-                for (var c = 0; c < this.ColCnt; ++c) {
-                    ret.m_Candidates[r, c] = this.m_Candidates[r, c];
+            for (var r = 0; r < RowCnt; ++r) {
+                for (var c = 0; c < ColCnt; ++c) {
+                    ret.m_Candidates[r, c] = m_Candidates[r, c];
                 }
             }
 

@@ -123,7 +123,7 @@ namespace sudoku.data
         {
             m_Puzzle.FillAllCandidates();
 
-            int step = 1;
+            var step = 1;
             while (!m_Puzzle.IsFinished) {
                 yield return new WaitForSeconds(0.2f);
 

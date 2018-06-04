@@ -5,7 +5,7 @@ namespace sudoku.data.solve
 {
     public class Color : Technique
     {
-        protected Context context;
+        protected Context m_Context;
 
         protected class GridNode
         {
@@ -142,28 +142,28 @@ namespace sudoku.data.solve
             }
         }
 
-        protected DigitColor[] digit_colors;
+        protected DigitColor[] m_DigitColors;
 
         protected void prepare()
         {
-            digit_colors = new DigitColor[context.Puzzle.Size];
-            for (var digit = 1; digit <= context.Puzzle.Size; ++digit) {
+            m_DigitColors = new DigitColor[m_Context.Puzzle.Size];
+            for (var digit = 1; digit <= m_Context.Puzzle.Size; ++digit) {
                 var dc = new DigitColor();
-                digit_colors[digit - 1] = dc;
+                m_DigitColors[digit - 1] = dc;
 
-                var grid = context.DigitInfos[digit - 1].grid;
-                for (var i = 0; i < context.Puzzle.Size; ++i) {
-                    var intersect = grid.Intersect(context.RowMasks[i]);
+                var grid = m_Context.DigitInfos[digit - 1].grid;
+                for (var i = 0; i < m_Context.Puzzle.Size; ++i) {
+                    var intersect = grid.Intersect(m_Context.RowMasks[i]);
                     if (intersect.BitCount == 2) {
                         dc.AddConjugatePair(intersect);
                     }
 
-                    intersect = grid.Intersect(context.ColMasks[i]);
+                    intersect = grid.Intersect(m_Context.ColMasks[i]);
                     if (intersect.BitCount == 2) {
                         dc.AddConjugatePair(intersect);
                     }
 
-                    intersect = grid.Intersect(context.BoxMasks[i]);
+                    intersect = grid.Intersect(m_Context.BoxMasks[i]);
                     if (intersect.BitCount == 2) {
                         dc.AddConjugatePair(intersect);
                     }
@@ -173,7 +173,7 @@ namespace sudoku.data.solve
 
         public bool TrySolve(Context ctx)
         {
-            context = ctx;
+            m_Context = ctx;
             prepare();
 
             if (TrySimpleColor()) {
@@ -191,13 +191,13 @@ namespace sudoku.data.solve
 
         protected bool TrySimpleColor()
         {
-            for (var digit = 1; digit <= context.Puzzle.Size; ++digit) {
-                var dc = digit_colors[digit - 1];
+            for (var digit = 1; digit <= m_Context.Puzzle.Size; ++digit) {
+                var dc = m_DigitColors[digit - 1];
                 var p = dc.head;
                 while (p != null) {
-                    var intersect = context.GenerateIntersectViewGridBetween(p.true_node.grid, p.false_node.grid);
+                    var intersect = m_Context.GenerateIntersectViewGridBetween(p.true_node.grid, p.false_node.grid);
 
-                    if (context.EliminateSingleCandidate(intersect, digit)) {
+                    if (m_Context.EliminateSingleCandidate(intersect, digit)) {
                         return true;
                     }
 
@@ -210,8 +210,8 @@ namespace sudoku.data.solve
 
         protected bool TryMultiColors()
         {
-            for (var digit = 1; digit <= context.Puzzle.Size; ++digit) {
-                var dc = digit_colors[digit - 1];
+            for (var digit = 1; digit <= m_Context.Puzzle.Size; ++digit) {
+                var dc = m_DigitColors[digit - 1];
                 if (dc.head == null) {
                     continue;
                 }
@@ -220,14 +220,14 @@ namespace sudoku.data.solve
                 while (first != null) {
                     var second = first.next;
 
-                    var first_true_view = context.GenerateViewGrid(first.true_node.grid);
-                    var first_false_view = context.GenerateViewGrid(first.false_node.grid);
+                    var first_true_view = m_Context.GenerateViewGrid(first.true_node.grid);
+                    var first_false_view = m_Context.GenerateViewGrid(first.false_node.grid);
                     while (second != null) {
                         var intersect = first_true_view.Intersect(second.true_node.grid);
                         if (intersect.BitCount != 0) {
                             // find
-                            var eliminated = context.GenerateIntersectViewGridBetween(first.false_node.grid, second.false_node.grid);
-                            if (context.EliminateSingleCandidate(eliminated, digit)) {
+                            var eliminated = m_Context.GenerateIntersectViewGridBetween(first.false_node.grid, second.false_node.grid);
+                            if (m_Context.EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
                         }
@@ -235,8 +235,8 @@ namespace sudoku.data.solve
                         intersect = first_true_view.Intersect(second.false_node.grid);
                         if (intersect.BitCount != 0) {
                             // find
-                            var eliminated = context.GenerateIntersectViewGridBetween(first.false_node.grid, second.true_node.grid);
-                            if (context.EliminateSingleCandidate(eliminated, digit)) {
+                            var eliminated = m_Context.GenerateIntersectViewGridBetween(first.false_node.grid, second.true_node.grid);
+                            if (m_Context.EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
                         }
@@ -244,8 +244,8 @@ namespace sudoku.data.solve
                         intersect = first_false_view.Intersect(second.true_node.grid);
                         if (intersect.BitCount != 0) {
                             // find
-                            var eliminated = context.GenerateIntersectViewGridBetween(first.true_node.grid, second.false_node.grid);
-                            if (context.EliminateSingleCandidate(eliminated, digit)) {
+                            var eliminated = m_Context.GenerateIntersectViewGridBetween(first.true_node.grid, second.false_node.grid);
+                            if (m_Context.EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
                         }
@@ -253,8 +253,8 @@ namespace sudoku.data.solve
                         intersect = first_false_view.Intersect(second.false_node.grid);
                         if (intersect.BitCount != 0) {
                             // find
-                            var eliminated = context.GenerateIntersectViewGridBetween(first.true_node.grid, second.true_node.grid);
-                            if (context.EliminateSingleCandidate(eliminated, digit)) {
+                            var eliminated = m_Context.GenerateIntersectViewGridBetween(first.true_node.grid, second.true_node.grid);
+                            if (m_Context.EliminateSingleCandidate(eliminated, digit)) {
                                 return true;
                             }
                         }
