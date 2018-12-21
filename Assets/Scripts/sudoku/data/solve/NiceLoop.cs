@@ -178,123 +178,96 @@ namespace sudoku.data.solve
         {
             public Context Context = null;
 
-            protected int m_CellIdx;
-            public int CellIdx
-            {
-                get {
-                    return m_CellIdx;
-                }
-            }
+            public int CellIdx;
+            public int Row;
+            public int Col;
+            public int Digit;
 
-            protected int m_CellRow;
-            public int Row
+            public void Init(int cell_idx, int digit)
             {
-                get {
-                    return m_CellRow;
-                }
-            }
+                CellIdx = cell_idx;
+                Context.Index2RowCol(CellIdx, out Row, out Col);
 
-            protected int m_CellCol;
-            public int Col
-            {
-                get {
-                    return m_CellCol;
-                }
-            }
-
-            protected int m_Number;
-            public int Number
-            {
-                get {
-                    return m_Number;
-                }
-            }
-
-            public void Init(int cell_idx, int number)
-            {
-                m_CellIdx = cell_idx;
-                Context.Index2RowCol(m_CellIdx, out m_CellRow, out m_CellCol);
-
-                m_Number = number;
+                Digit = digit;
             }
 
             public bool IsAtSamePosition(Cell c)
             {
-                return c.m_CellIdx == m_CellIdx;
+                return c.CellIdx == CellIdx;
             }
 
-            public bool IsAtSamePosition(int idx)
+            public bool IsAtSamePosition(int cell_idx)
             {
-                return idx == m_CellIdx;
+                return cell_idx == CellIdx;
             }
 
             public bool IsBiValue()
             {
-                return Context.Puzzle.Candidates[m_CellRow, m_CellCol].BitCount == 2;
+                return Context.Puzzle.Candidates[Row, Col].BitCount == 2;
             }
 
-            public bool ContainsNumber(int number)
+            public bool ContainsDigit(int digit)
             {
-                return Context.Puzzle.Candidates[m_CellRow, m_CellCol].HasBit(number);
+                return Context.Puzzle.Candidates[Row, Col].HasBit(digit);
             }
 
             public BitSet32 GetOtherCondidates()
             {
-                var candidates = Context.Puzzle.Candidates[m_CellRow, m_CellCol];
-                candidates.UnSetBit(m_Number);
+                var candidates = Context.Puzzle.Candidates[Row, Col];
+                candidates.UnSetBit(Digit);
 
                 return candidates;
             }
 
-            public BitSet128 GetRelated(int number)
+            public BitSet128 GetRelated(int digit)
             {
-                if (number != m_Number && !ContainsNumber(number)) {
-                    throw new Exception(string.Format("Invalid number{0} in GetRelated", number));
+                if (digit != Digit && !ContainsDigit(digit)) {
+                    throw new Exception(string.Format("Invalid digit{0} in GetRelated", digit));
                 }
 
                 // 计算出自身的视野
-                var view = Context.GenerateViewGrid(m_CellIdx);
+                var view = Context.GenerateViewGrid(CellIdx);
 
                 // 去掉视野内不存在指定数字的格子
-                view = view.Intersect(Context.DigitInfos[number - 1].grid);
+                view = view.Intersect(Context.DigitInfos[digit - 1].grid);
 
                 // 去掉自身格子
                 var self_mask = new BitSet128();
-                self_mask.SetBit(m_CellIdx);
+                self_mask.SetBit(CellIdx);
                 view = view.Minus(self_mask);
 
                 return view;
             }
 
-            public BitSet128 GetConjugatePairs(int number)
+            public BitSet128 GetConjugatePairs(int digit)
             {
-                if (number != m_Number && !ContainsNumber(number)) {
-                    throw new Exception(string.Format("Invalid number{0} in GetConjugatePairs", number));
+                if (digit != Digit && !ContainsDigit(digit)) {
+                    throw new Exception(string.Format("Invalid number{0} in GetConjugatePairs", digit));
                 }
 
                 var ret = new BitSet128();
 
-                var digit_info = Context.DigitInfos[number - 1];
+                var digit_info = Context.DigitInfos[digit - 1];
 
                 // 计算行、列、宫的共轭对
-                var row = digit_info.grid.Intersect(Context.RowMasks[m_CellRow]);
+                var row = digit_info.grid.Intersect(Context.RowMasks[Row]);
                 if (row.BitCount == 2) {
                     ret = ret.Union(row);
                 }
 
-                var col = digit_info.grid.Intersect(Context.ColMasks[m_CellCol]);
+                var col = digit_info.grid.Intersect(Context.ColMasks[Col]);
                 if (col.BitCount == 2) {
                     ret = ret.Union(col);
                 }
 
-                var box = digit_info.grid.Intersect(Context.BoxMasks[Context.Puzzle.RowCol2Box(m_CellRow, m_CellCol)]);
+                var box = digit_info.grid.Intersect(Context.BoxMasks[Context.Puzzle.RowCol2Box(Row, Col)]);
                 if (box.BitCount == 2) {
                     ret = ret.Union(box);
                 }
 
                 // 去掉自身格子
                 var self_mask = new BitSet128();
-                self_mask.SetBit(m_CellIdx);
+                self_mask.SetBit(CellIdx);
                 ret = ret.Minus(self_mask);
 
                 return ret;
@@ -302,7 +275,7 @@ namespace sudoku.data.solve
 
             public string Print()
             {
-                return string.Format("[R{0}C{1}]", m_CellRow + 1, m_CellCol + 1);
+                return string.Format("[R{0}C{1}]", Row + 1, Col + 1);
             }
         }
 
@@ -317,7 +290,7 @@ namespace sudoku.data.solve
             public string Print()
             {
                 return string.Format("{0}{1}{0}{2}", LinkType == ELinkType.Strong ? '=' : '-',
-                    Cell.Number, Cell.Print());
+                    Cell.Digit, Cell.Print());
             }
         }
 
@@ -329,17 +302,56 @@ namespace sudoku.data.solve
 
             public BitSet128 FilledMask;
 
-            protected bool m_Break = false;
             protected int m_BreakTime = int.MaxValue;
+
+            protected Queue<Cell> m_CellCache = new Queue<Cell>();
+            public Cell CreateCell(int cell_idx, int digit)
+            {
+                Cell ret = null;
+                if (m_CellCache.Count > 0) {
+                    ret = m_CellCache.Dequeue();
+                }
+                else {
+                    ret = new Cell();
+                    ret.Context = Context;
+                }
+
+                ret.Init(cell_idx, digit);
+                return ret;
+            }
+
+            public void DestroyCell(Cell cell)
+            {
+                m_CellCache.Enqueue(cell);
+            }
+
+            protected Queue<Node> m_NodeCache = new Queue<Node>();
+            public Node CreateNode(Cell cell, ELinkType link_type = ELinkType.None)
+            {
+                Node ret = null;
+                if (m_NodeCache.Count > 0) {
+                    ret = m_NodeCache.Dequeue();
+                }
+                else {
+                    ret = new Node();
+                }
+
+                ret.Cell = cell;
+                ret.LinkType = link_type;
+                ret.Prev = null;
+                ret.Next = null;
+
+                return ret;
+            }
+
+            public void DestroyNode(Node node)
+            {
+                m_NodeCache.Enqueue(node);
+            }
 
             public void SetHead(Cell cell)
             {
-                var node = new Node() {
-                    Cell = cell,
-                    LinkType = ELinkType.None,
-                    Prev = null,
-                    Next = null,
-                };
+                var node = CreateNode(cell);
 
                 Head = node;
                 Tail = node;
@@ -351,14 +363,14 @@ namespace sudoku.data.solve
             protected bool EliminateType1()
             {
                 // 如果第一个单元格有2条弱链，且弱链的数字相同，那么这个数字可以被这个单元格摒除。
-                Context.EliminateSingleCandidate(new BitSet128(Head.Cell.CellIdx), Head.Next.Cell.Number);
+                Context.EliminateSingleCandidate(new BitSet128(Head.Cell.CellIdx), Head.Next.Cell.Digit);
                 return true;
             }
 
             protected bool EliminateType2()
             {
                 // 如果第一个单元格有2条强链，且强链的数字相同，那么这个数字可以直接填入单元格。
-                Context.Puzzle.TrySetCellAt(Head.Cell.Row, Head.Cell.Col, Head.Next.Cell.Number);
+                Context.Puzzle.TrySetCellAt(Head.Cell.Row, Head.Cell.Col, Head.Next.Cell.Digit);
                 return true;
             }
 
@@ -366,10 +378,10 @@ namespace sudoku.data.solve
             {
                 // 如果第一个单元格有1条强链和1条弱链，且2条链的数字不同，那么弱链的数字可以被这个单元格摒除。
                 if (Head.Next.LinkType == ELinkType.Weak) {
-                    Context.EliminateSingleCandidate(new BitSet128(Head.Cell.CellIdx), Head.Next.Cell.Number);
+                    Context.EliminateSingleCandidate(new BitSet128(Head.Cell.CellIdx), Head.Next.Cell.Digit);
                 }
                 else {
-                    Context.EliminateSingleCandidate(new BitSet128(Tail.Cell.CellIdx), Tail.Cell.Number);
+                    Context.EliminateSingleCandidate(new BitSet128(Tail.Cell.CellIdx), Tail.Cell.Digit);
                 }
                 return true;
             }
@@ -381,7 +393,7 @@ namespace sudoku.data.solve
                     if (p.LinkType == ELinkType.Strong) {
                         if (p.Next != null && p.Next.LinkType == ELinkType.Strong) {
                             foreach (var digit in BitSet32.AllBits(p.Cell.GetOtherCondidates(), Context.Puzzle.Size)) {
-                                if (digit == p.Cell.Number || digit == p.Next.Cell.Number) {
+                                if (digit == p.Cell.Digit || digit == p.Next.Cell.Digit) {
                                     continue;
                                 }
 
@@ -396,7 +408,7 @@ namespace sudoku.data.solve
                             var grid1 = Context.GenerateViewGrid(p.Prev.Cell.CellIdx);
                             var grid2 = Context.GenerateViewGrid(p.Cell.CellIdx);
                             var view = grid1.Intersect(grid2).Minus(new BitSet128(p.Prev.Cell.CellIdx)).Minus(new BitSet128(p.Cell.CellIdx));
-                            if (Context.EliminateSingleCandidate(view, p.Cell.Number)) {
+                            if (Context.EliminateSingleCandidate(view, p.Cell.Digit)) {
                                 return true;
                             }
                         }
@@ -411,7 +423,7 @@ namespace sudoku.data.solve
             {
                 if (link_type == ELinkType.Strong) {
                     if (Head.Next.LinkType == ELinkType.Strong) {
-                        if (cell.Number == Head.Next.Cell.Number) {
+                        if (cell.Digit == Head.Next.Cell.Digit) {
                             // type 2.
                             if (EliminateType2()) {
                                 Debug.Log("Type 2 : " + Print());
@@ -420,7 +432,7 @@ namespace sudoku.data.solve
                         }
                     }
                     else if (Head.Next.LinkType == ELinkType.Weak) {
-                        if (cell.Number != Head.Next.Cell.Number) {
+                        if (cell.Digit != Head.Next.Cell.Digit) {
                             // type 3
                             if (EliminateType3()) {
                                 Debug.Log("Type 3 : " + Print());
@@ -435,7 +447,7 @@ namespace sudoku.data.solve
                 }
                 else if (link_type == ELinkType.Weak) {
                     if (Head.Next.LinkType == ELinkType.Weak) {
-                        if (cell.Number == Head.Next.Cell.Number) {
+                        if (cell.Digit == Head.Next.Cell.Digit) {
                             // type 1.
                             if (EliminateType1()) {
                                 Debug.Log("Type 1 : " + Print());
@@ -444,7 +456,7 @@ namespace sudoku.data.solve
                         }
                     }
                     else if (Head.Next.LinkType == ELinkType.Strong) {
-                        if (cell.Number != Head.Next.Cell.Number) {
+                        if (cell.Digit != Head.Next.Cell.Digit) {
                             // type 3
                             if (EliminateType3()) {
                                 Debug.Log("Type 3 : " + Print());
@@ -463,10 +475,6 @@ namespace sudoku.data.solve
 
             public bool Link(Cell cell, ELinkType link_type)
             {
-                //if (m_BreakTime < 0) {
-                //    return false;
-                //}
-
                 if (Tail.Cell.IsAtSamePosition(cell)) {
                     return false;
                 }
@@ -479,12 +487,8 @@ namespace sudoku.data.solve
                     return false;
                 }
 
-                var node = new Node() {
-                    Cell = cell,
-                    LinkType = link_type,
-                    Prev = Tail,
-                    Next = null,
-                };
+                var node = CreateNode(cell, link_type);
+                node.Prev = Tail;
 
                 Tail.Next = node;
                 Tail = node;
@@ -502,6 +506,8 @@ namespace sudoku.data.solve
                 Tail = tail.Prev;
                 Tail.Next = null;
                 tail.Prev = null;
+
+                DestroyNode(tail);
             }
 
             public string Print()
@@ -534,60 +540,44 @@ namespace sudoku.data.solve
                     }
 
                     --m_BreakTime;
-                    var c = cell.Number;
+                    var c = cell.Digit;
 
                     if (Tail.LinkType == ELinkType.Strong) {
                         foreach (var cell2_idx in BitSet128.AllBits(cell.GetRelated(c))) {
-                            var cell2 = new Cell()
-                            {
-                                Context = Context,
-                            };
-
-                            cell2.Init(cell2_idx, c);
+                            var cell2 = CreateCell(cell2_idx, c);
                             if (FindNext(cell2, ELinkType.Weak)) {
                                 return true;
                             }
+                            DestroyCell(cell2);
                         }
 
                         foreach (var c2 in BitSet32.AllBits(cell.GetOtherCondidates(), Context.Puzzle.Size)) {
                             foreach (var cell2_idx in BitSet128.AllBits(cell.GetConjugatePairs(c2))) {
-                                var cell2 = new Cell()
-                                {
-                                    Context = Context,
-                                };
-
-                                cell2.Init(cell2_idx, c2);
+                                var cell2 = CreateCell(cell2_idx, c2);
                                 if (FindNext(cell2, ELinkType.Strong)) {
                                     return true;
                                 }
+                                DestroyCell(cell2);
                             }
                         }
                     }
                     else if (Tail.LinkType == ELinkType.Weak) {
                         foreach (var cell2_idx in BitSet128.AllBits(cell.GetConjugatePairs(c))) {
-                            var cell2 = new Cell()
-                            {
-                                Context = Context,
-                            };
-
-                            cell2.Init(cell2_idx, c);
+                            var cell2 = CreateCell(cell2_idx, c);
                             if (FindNext(cell2, ELinkType.Strong)) {
                                 return true;
                             }
+                            DestroyCell(cell2);
                         }
 
                         if (cell.IsBiValue()) {
                             foreach (var c2 in BitSet32.AllBits(cell.GetOtherCondidates(), Context.Puzzle.Size)) {
                                 foreach (var cell2_idx in BitSet128.AllBits(cell.GetRelated(c2))) {
-                                    var cell2 = new Cell()
-                                    {
-                                        Context = Context,
-                                    };
-
-                                    cell2.Init(cell2_idx, c2);
+                                    var cell2 = CreateCell(cell2_idx, c2);
                                     if (FindNext(cell2, ELinkType.Weak)) {
                                         return true;
                                     }
+                                    DestroyCell(cell2);
                                 }
                             }
                         }
@@ -617,32 +607,23 @@ namespace sudoku.data.solve
                     }
 
                     foreach (var digit in BitSet32.AllBits(candidates, context.Puzzle.Size)) {
-                        var cell = new Cell() {
-                            Context = context,
-                        };
-                        cell.Init(context.RowCol2Index(r, c), digit);
+                        var cell = loop.CreateCell(context.RowCol2Index(r, c), digit);
                         loop.SetHead(cell);
 
                         foreach (var cell2_idx in BitSet128.AllBits(cell.GetConjugatePairs(digit))) {
-                            var cell2 = new Cell() {
-                                Context = context,
-                            };
-                            cell2.Init(cell2_idx, digit);
-
+                            var cell2 = loop.CreateCell(cell2_idx, digit);
                             if (loop.FindNext(cell2, ELinkType.Strong)) {
                                 return true;
                             }
+                            loop.DestroyCell(cell2);
                         }
 
                         foreach (var cell2_idx in BitSet128.AllBits(cell.GetRelated(digit))) {
-                            var cell2 = new Cell() {
-                                Context = context,
-                            };
-                            cell2.Init(cell2_idx, digit);
-
+                            var cell2 = loop.CreateCell(cell2_idx, digit);
                             if (loop.FindNext(cell2, ELinkType.Weak)) {
                                 return true;
                             }
+                            loop.DestroyCell(cell2);
                         }
                     }
                 }

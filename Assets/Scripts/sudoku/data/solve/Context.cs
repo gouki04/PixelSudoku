@@ -70,6 +70,8 @@ namespace sudoku.data.solve
             /// @see rows
             /// </summary>
             public BitSet32[] cols;
+
+            public BitSet128 conjugate_pairs;
         }
 
         /// <summary>
